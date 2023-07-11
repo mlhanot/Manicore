@@ -6,12 +6,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Make docs dir
+        run: mkdir ./docs
+        shell: bash
       - name: Install doxygen
-        run: sudo apt install doxygen -y
+        run: sudo apt install graphviz doxygen -y
         shell: bash
       - name: Generate Doxygen documentation
         run: doxygen Doxyfile
         shell: bash
       - name: Create .nojekyll
-        run: touch docs/.nojekyll
+        run: touch ./docs/.nojekyll
         shell: bash

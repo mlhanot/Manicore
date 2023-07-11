@@ -21,6 +21,8 @@
 
 using namespace Manicore;
 
+// Doxygen have some trouble with template overloading
+/// @cond
 template<size_t dimension,size_t d> requires(d > 0 && d <= dimension)
 dCell_mass<dimension,d>::dCell_mass(size_t i_cell, int r, const QuadratureRule<d> & quad, const Integral<dimension,d> &integral)
 {
@@ -87,6 +89,7 @@ dCell_traces<dimension,1>::dCell_traces(size_t i_cell, int r, const Mesh<dimensi
     traces[0].emplace_back(M);
   }
 } 
+/// @endcond
 
 #include "/home/user/Manicore/include/preprocessor.hpp"
 #define PRED(x, y, ...) COMPL(IS_1(x))
