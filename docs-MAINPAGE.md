@@ -2,6 +2,8 @@
 
 Manicore - Library to implement schemes on n-dimensional manifolds.
 
+The sources are available at https://github.com/mlhanot/Manicore.
+
 This library stem from the HArD::Core library (https://github.com/jdroniou/HArDCore) and the generalization of the Polytopal Exterior Calculus (https://doi.org/10.48550/arXiv.2303.11093) to manifolds with general Riemannian metric.
 The name come from Manifold and HArDCore.
 
