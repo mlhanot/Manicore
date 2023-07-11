@@ -32,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install doxygen
-        run: sudo apt install graphviz doxygen ttf-freefont perl build-base texlive-full biblatex ghostscript -y
+        run: sudo apt install graphviz doxygen perl texlive-full ghostscript -y
         shell: bash
       - name: Generate Doxygen documentation
         run: doxygen Doxyfile
