@@ -1,0 +1,25 @@
+json
+{
+  'Map': {
+            'Outer_dimension': number, 
+            'Arguments': [[number] or null], # Extra argument for each mapping, the number of mappings is the size of this array
+            'Arguments_metric': [[number] or null] # Extra argument for the metric information 
+         },
+  'Dimension': number,
+  'Cells': [
+            # 0-cells
+            [{'Map_ids':[number], # identifiant of global charts
+              'Location':[[number]] # location within each chart (array of vector)
+            }], 
+            # >=1-cells
+            [{'Map_ids':[number], # identifiant of global charts
+              'Mappings':[number], # identifiant of the mapping for each chart, 0 is reserved for the flat map
+              'Mappings_extra_args':[[number] or null], # extra argument to bind to the mapping function
+              'Pullbacks_extra_args':[[number] or null], # extra argument to bind to the pullback function, if null the mappings extra args is used
+              'Ref_elem':null or [[[number]]], # possible triangulation, must be given as a list a simplex if non null (a single triangulation is shared for all mappings). It is ignored on flat edges.
+              'Boundary':[number] # identifiants of the (d-1)-cells of the boundary. For the 1-cells (edges), the order of the verticies MUST follows the orientation (i.e. an edge of boundary [v1,v2] must be a path FROM v1 TO v2).
+            }], 
+              ...
+           ]
+}
+
