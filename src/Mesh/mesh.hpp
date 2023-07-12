@@ -195,8 +195,8 @@ namespace Manicore {
       Eigen::Matrix<double,d,d> invGF;
       double sqrtdetG;
       if constexpr(d == dimension) { // TODO check if this is actually faster
-        auto const DJt = F.template evaluate_DJ(0,Ix);
-        invGF = DJt*metric_inv(get_map_ids(d,i_cell)[0],Ix)*DJt.transpose();
+        auto const DJ = F.evaluate_DJ(0,Ix);
+        invGF = DJ*metric_inv(get_map_ids(d,i_cell)[0],Ix)*DJ.transpose();
         sqrtdetG = volume_form(get_map_ids(d,i_cell)[0],Ix) * std::abs(F.evaluate_DI(0,x).determinant());
       } else {
         auto const DI = F.evaluate_DI(0,x);

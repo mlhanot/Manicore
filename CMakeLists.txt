@@ -3,6 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
 # Dimension to compile for
 ADD_DEFINITIONS(-DMAX_DIMENSION=2)
+
+OPTION(BUILD_TEST "Build the testing tree." ON)
 #------------------------------------------------------------------------------#
 #                             Compiler setup
 #------------------------------------------------------------------------------#
@@ -23,7 +25,6 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 MESSAGE(STATUS "Build type : ${CMAKE_BUILD_TYPE}")
 
-OPTION(BUILD_TEST "Build the testing tree." ON)
 #------------------------------------------------------------------------------#
 #                             Required libraries
 #------------------------------------------------------------------------------#

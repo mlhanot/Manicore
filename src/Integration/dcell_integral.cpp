@@ -91,7 +91,7 @@ dCell_traces<dimension,1>::dCell_traces(size_t i_cell, int r, const Mesh<dimensi
 } 
 /// @endcond
 
-#include "/home/user/Manicore/include/preprocessor.hpp"
+#include "preprocessor.hpp"
 #define PRED(x, y, ...) COMPL(IS_1(x))
 #define OP(x, y, ...) template struct Manicore::dCell_mass<x,y>; template struct Manicore::dCell_traces<x,y>;
 #define CONT(x, y, ...) IF_ELSE_2(IS_1(y))(DEC(x), DEC(x), x,DEC(y)), __VA_ARGS__
