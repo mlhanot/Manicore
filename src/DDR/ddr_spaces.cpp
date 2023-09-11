@@ -268,6 +268,56 @@ Eigen::MatrixXd DDR_Spaces<dimension>::compose_diff(size_t k,size_t d,size_t i_c
   }
 }
 
+template<size_t dimension>
+Eigen::MatrixXd DDR_Spaces<dimension>::computeL2Product(size_t k, size_t d,size_t i_cell) const {
+  assert(d <= dimension && k <= d && i_cell < _mesh->n_cells(d) && "Access cell out of range");
+  auto const & dofspace = _dofspace[k];
+  // Top dimensional
+  Eigen::MatrixXd const & P = potential(k,d,i_cell);
+  Eigen::MatrixXd rv = P.transpose()*_ddr->get_mass(k,d,i_cell)*P;
+  // Depth-first travel to reuse traces matrices
+  auto _computeTracesL2 = [&]<size_t _d>(auto && _computeTracesL2, size_t i_bAbs, const Eigen::MatrixXd & trP) {
+    // Contribution from this _d-cell
+    Eigen::MatrixXd Ptr = dofspace.extendOperator(_d,d,i_bAbs,i_cell,potential(k,_d,i_bAbs));
+    if constexpr (_d == 0) {
+      rv += (trP - Ptr).transpose()*(trP-Ptr); // The mass is trivial (and cannot be queried from PEC)
+      return; // No more boundary
+    } else {
+      rv += (trP - Ptr).transpose()*_ddr->get_mass(k,_d,i_bAbs)*(trP-Ptr);
+      // Contribution from its boundary
+      if (_d <= k) return; // dimension of boundary lower than form degree, stop here
+      auto const & boundary = _mesh->get_boundary(_d-1,_d,i_bAbs);
+      for (size_t i_bb = 0; i_bb < boundary.size(); ++i_bb) {
+        Eigen::MatrixXd trPb = _ddr->get_trace(k,_d,i_bAbs,i_bb)*trP;
+        _computeTracesL2.template operator()<_d-1>(_computeTracesL2, boundary[i_bb], trPb);
+      }
+    }
+  };
+  // _computeTracesL2 must be started with a constant expression
+  // _initiateTracesL2 iterate from the top dimension until d
+  auto _initiateTracesL2 = [&]<size_t _d>(auto && _initiateTracesL2) {
+    if constexpr(_d == 0) { // No more boundary
+      return; 
+    } else if (k >= d) { // Form degree too high for the boundary of dimension d-1
+      return;
+    } else {
+      if (_d > d) { // dimension started too high, propagate on lower dimension
+        _initiateTracesL2.template operator()<_d-1>(_initiateTracesL2);
+      } else if (_d == d) { // Initiate for all boundary
+        auto const & boundary = _mesh->get_boundary(_d-1,_d,i_cell);
+        for (size_t i_b = 0; i_b < boundary.size(); ++i_b) {
+          Eigen::MatrixXd trP = _ddr->get_trace(k,_d,i_cell,i_b)*P;
+          _computeTracesL2.template operator()<_d-1>(_computeTracesL2, boundary[i_b], trP);
+        }
+      }
+    }
+  };
+  // Contribution from boundary element
+  _initiateTracesL2.template operator()<dimension>(_initiateTracesL2);
+  return rv;
+}
+
+
 #include "preprocessor.hpp"
 // Instantiate the class for all dimensions
 #define PRED(x, ...) COMPL(IS_1(x))

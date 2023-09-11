@@ -30,17 +30,17 @@ namespace Manicore {
      Compute the action of Kozsul and Diff on the exterior algebra.
    The action is returned as a list of matrix between the exterior algebra basis
    To get the full action, one must take the Kronecker product between the action on the exterior algebra and the action on the polynomial space.
-   In the case of Koszul, the action is to multiply by x_i, and in the case of Diff, it is the differentiated by x_i. 
+   In the case of Koszul, the action is to multiply by \f$x_i\f$, and in the case of Diff, it is the differentiated by \f$x_i\f$. 
 
    The basis are those given in exterior_algebra.hpp.
-   The basis of \f$P_r\Lambda^l(\mathbb{R}^d)\f$ is the Kronecker product \f$\Lambda^l \otimes P_r\f$.
+   The basis of \f$\mathcal{P}_r\Lambda^l(\mathbb{R}^d)\f$ is the Kronecker product \f$\Lambda^l \otimes \mathcal{P}_r\f$.
   
 
      The most useful are:
       Koszul_full : gives the matrix of the Koszul operator
       Diff_full : gives the matrix of the Diff operator
 
-     Call Initialize_exterior_module<d>::init(int r) to initialize every module on dimension d
+     Call Manicore::Initialize_exterior_module<d>::init(int r) to initialize every module on dimension d
 */
 
   ///------------------------------------------------------------------------------------------------------------------------------
@@ -178,10 +178,10 @@ namespace Manicore {
   /// \addtogroup ExteriorBundle
   ///@{
 
-  /// Koszul operator from \f$P_r\Lambda^l(\mathbb{R}^d)\f$ to \f$P_{r+1}\Lambda^{l-1}(\mathbb{R}^d)\f$.
+  /// Koszul operator from \f$\mathcal{P}_r\Lambda^l(\mathbb{R}^d)\f$ to \f$\mathcal{P}_{r+1}\Lambda^{l-1}(\mathbb{R}^d)\f$.
   template<size_t l, size_t d>
   struct Koszul_full {
-  /// Koszul operator from \f$P_r\Lambda^l(\mathbb{R}^d)\f$ to \f$P_{r+1}\Lambda^{l-1}(\mathbb{R}^d)\f$.
+  /// Koszul operator from \f$\mathcal{P}_r\Lambda^l(\mathbb{R}^d)\f$ to \f$\mathcal{P}_{r+1}\Lambda^{l-1}(\mathbb{R}^d)\f$.
     static Eigen::MatrixXd get (const int r /*!< Polynomial degree */) {
       if constexpr (l==0 || l > d) {
         return Eigen::MatrixXd(0,0);
@@ -214,10 +214,10 @@ namespace Manicore {
       }
   };
 
-  /// Differential operator from \f$P_r\Lambda^l(\mathbb{R}^d)\f$ to \f$P_{r-1}\Lambda^{l+1}(\mathbb{R}^d)\f$.
+  /// Differential operator from \f$\mathcal{P}_r\Lambda^l(\mathbb{R}^d)\f$ to \f$\mathcal{P}_{r-1}\Lambda^{l+1}(\mathbb{R}^d)\f$.
   template<size_t l, size_t d>
   struct Diff_full {
-  /// Differential operator from \f$P_r\Lambda^l(\mathbb{R}^d)\f$ to \f$P_{r-1}\Lambda^{l+1}(\mathbb{R}^d)\f$.
+  /// Differential operator from \f$\mathcal{P}_r\Lambda^l(\mathbb{R}^d)\f$ to \f$\mathcal{P}_{r-1}\Lambda^{l+1}(\mathbb{R}^d)\f$.
     static Eigen::MatrixXd get (const int r /*!< Polynomial degree */) {
       if (l >= d) {
         return Eigen::MatrixXd(0,0);
@@ -231,7 +231,7 @@ namespace Manicore {
       return M;
     };
 
-  /// Differential operator from \f$P_r\Lambda^l(\mathbb{R}^d)\f$ to \f$P_{r}\Lambda^{l+1}(\mathbb{R}^d)\f$.
+  /// Differential operator from \f$\mathcal{P}_r\Lambda^l(\mathbb{R}^d)\f$ to \f$\mathcal{P}_{r}\Lambda^{l+1}(\mathbb{R}^d)\f$.
     static Eigen::MatrixXd get_as_degr (const int r /*!< Polynomial degree */) {
       auto inj = Eigen::KroneckerProduct(Eigen::Matrix<double,Dimension::ExtDim(l+1,d),Dimension::ExtDim(l+1,d)>::Identity(),
                                  Eigen::MatrixXd::Identity(Dimension::PolyDim(r,d),Dimension::PolyDim(r-1,d)));

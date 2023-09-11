@@ -39,7 +39,7 @@ namespace Manicore::Dimension {
     return binom(d,l);
   }
 
-  /// Dimension of \f$P^r(\mathbb{R}^d)\f$
+  /// Dimension of \f$\mathcal{P}_r(\mathbb{R}^d)\f$
   constexpr size_t PolyDim(int r,size_t d) 
   {
     return (r >= 0) ? binom(r+d,d):0;
@@ -51,7 +51,7 @@ namespace Manicore::Dimension {
     return PolyDim(r,d) - PolyDim(r-1,d);
   }
 
-  /// Dimension of \f$P_r\Lambda^l(\mathbb{R}^d)\f$
+  /// Dimension of \f$\mathcal{P}_r\Lambda^l(\mathbb{R}^d)\f$
   constexpr size_t PLDim(int r, size_t l, size_t d) 
   {
     return ExtDim(l,d)*PolyDim(r,d);
@@ -71,7 +71,7 @@ namespace Manicore::Dimension {
   {
     return kHDim(r-1,l+1,d);
   }
-  /// Dimension of the image of Koszul on polynomials \f$ \kappa P_r\Lambda^l(\mathbb{R}^d)\f$
+  /// Dimension of the image of Koszul on polynomials \f$ \kappa \mathcal{P}_r\Lambda^l(\mathbb{R}^d)\f$
   constexpr size_t kPLDim(int r, size_t l, size_t d) 
   {
     size_t sum = 0;
@@ -81,7 +81,7 @@ namespace Manicore::Dimension {
     return sum;
   }
 
-  /// Dimension of the image of d on polynomials \f$ d P_r\Lambda^l(\mathbb{R}^d)\f$
+  /// Dimension of the image of d on polynomials \f$ d \mathcal{P}_r\Lambda^l(\mathbb{R}^d)\f$
   constexpr size_t dPLDim(int r, size_t l, size_t d) 
   {
     size_t sum = 0;
@@ -91,7 +91,7 @@ namespace Manicore::Dimension {
     return sum;
   }
 
-  /// Dimension of trimmed polynomial spaces \f$ P_r^{-}\Lambda^l(\mathbb{R}^d)\f$
+  /// Dimension of trimmed polynomial spaces \f$ \mathcal{P}_r^{-}\Lambda^l(\mathbb{R}^d)\f$
   constexpr size_t PLtrimmedDim(int r, size_t l, size_t d) 
   {
     return (l == 0)? 

@@ -42,7 +42,9 @@ namespace Manicore {
       Compute_pullback : computes the action of a pullback to the exterior algebra
       Monomial_full : gives a mapping between index and monomial powers
 
-      The polynomial basis must be initialized before use
+     The polynomial basis must be initialized before use.
+
+     The explicit ordering for low dimensions is available [here](./ref_exterior_algebra).
    */
   
 

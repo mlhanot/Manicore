@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="339.59021mm"
+   height="207.97188mm"
+   viewBox="0 0 339.59021 207.97188"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="DDR.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:connector-spacing="4"
+     inkscape:zoom="1.0973349"
+     inkscape:cx="674.81678"
+     inkscape:cy="500.7587"
+     inkscape:window-width="1920"
+     inkscape:window-height="1024"
+     inkscape:window-x="1680"
+     inkscape:window-y="31"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <marker
+       style="overflow:visible"
+       id="Arrow5"
+       refX="4"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Arrow5"
+       markerWidth="5.8874259"
+       markerHeight="6.6094756"
+       viewBox="0 0 5.8874262 6.6094758"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="m 6,0 c -3,1 -7,3 -9,5 0,0 0,-4 2,-5 -2,-1 -2,-5 -2,-5 2,2 6,4 9,5 z"
+         id="path8893" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="CurveIn"
+       refX="2"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="CurveIn"
+       markerWidth="3.54"
+       markerHeight="7.0799999"
+       viewBox="0 0 3.54 7.08"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         style="fill:none;fill-rule:evenodd;stroke:context-stroke;stroke-width:1.08"
+         d="m -0.7647042,-3.0274156 c 1.656,0 3,1.344 3,3.00000005 0,1.65599995 -1.344,2.99999995 -3,2.99999995"
+         id="path186" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-15.425078,-34.42684)">
+    <g
+       id="g7587"
+       inkscape:label="DOFSpace"
+       transform="translate(24.855925,66.183166)">
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:0.5, 1.5;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect3883"
+         width="60.274654"
+         height="15.01494"
+         x="126.35211"
+         y="76.975601"
+         rx="0.99008417"
+         ry="0.75680512" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="130.53406"
+         y="87.837013"
+         id="text1373"><tspan
+           sodipodi:role="line"
+           id="tspan1371"
+           style="stroke-width:0.264583"
+           x="130.53406"
+           y="87.837013">DOFSpace</tspan></text>
+    </g>
+    <g
+       id="g7611"
+       inkscape:label="PEC"
+       transform="translate(41.319228,46.683164)">
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="219.62263"
+         y="126.29647"
+         id="text1369"><tspan
+           sodipodi:role="line"
+           id="tspan1367"
+           style="stroke-width:0.264583"
+           x="219.62263"
+           y="126.29647">PEC</tspan></text>
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:0.5, 1.49999;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect3883-3"
+         width="94.848335"
+         height="39.102703"
+         x="218.58925"
+         y="116.08654"
+         rx="1.5579988"
+         ry="1.970912" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:8.46667px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#0000ff;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="254.08632"
+         y="125.99965"
+         id="text14852"><tspan
+           sodipodi:role="line"
+           id="tspan14850"
+           style="font-size:8.46667px;fill:#0000ff;fill-opacity:1;stroke-width:0.264583"
+           x="254.08632"
+           y="125.99965">degree:  r, r+1</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:8.46667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';fill:#009700;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         x="221.43994"
+         y="139.65007"
+         id="text23236"><tspan
+           sodipodi:role="line"
+           id="tspan23234"
+           style="stroke-width:0.265"
+           x="221.43994"
+           y="139.65007">Masse matrices</tspan><tspan
+           sodipodi:role="line"
+           style="stroke-width:0.265"
+           x="221.43994"
+           y="150.23341"
+           id="tspan23238">Trace matrices</tspan></text>
+    </g>
+    <g
+       id="g7596"
+       inkscape:label="dCell_map"
+       transform="translate(6.3715209,-13.526392)">
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="19.528923"
+         y="58.820713"
+         id="text1381"><tspan
+           sodipodi:role="line"
+           id="tspan1379"
+           style="stroke-width:0.264583"
+           x="19.528923"
+           y="58.820713">dCell_map</tspan></text>
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:0.5, 1.50001;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect3883-6"
+         width="113.17467"
+         height="46.85001"
+         x="18.293629"
+         y="48.203232"
+         rx="1.8590311"
+         ry="2.3614035" />
+      <text
+         xml:space="preserve"
+         style="font-size:8.46667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';fill:#009700;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         x="50.454144"
+         y="70.7584"
+         id="text23250"><tspan
+           sodipodi:role="line"
+           id="tspan23248"
+           style="stroke-width:0.265"
+           x="50.454144"
+           y="70.7584">Pullback</tspan><tspan
+           sodipodi:role="line"
+           style="stroke-width:0.265"
+           x="50.454144"
+           y="81.341736"
+           id="tspan23252">Evaluate poly</tspan><tspan
+           sodipodi:role="line"
+           style="stroke-width:0.265"
+           x="50.454144"
+           y="91.925072"
+           id="tspan23254">Reference elements</tspan></text>
+    </g>
+    <g
+       id="g7601"
+       inkscape:label="Mesh">
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="18.52623"
+         y="129.05342"
+         id="text1377"><tspan
+           sodipodi:role="line"
+           id="tspan1375"
+           style="stroke-width:0.264583"
+           x="18.52623"
+           y="129.05342">Mesh</tspan></text>
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:0.5;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:0.5, 1.5;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect3883-7"
+         width="79.415138"
+         height="49.145214"
+         x="15.675907"
+         y="117.7289"
+         rx="1.3044897"
+         ry="2.4770896" />
+      <text
+         xml:space="preserve"
+         style="font-size:8.46667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';fill:#009700;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         x="28.897831"
+         y="140.93788"
+         id="text23242"><tspan
+           sodipodi:role="line"
+           id="tspan23240"
+           style="stroke-width:0.265"
+           x="28.897831"
+           y="140.93788">Metric</tspan><tspan
+           sodipodi:role="line"
+           style="stroke-width:0.265"
+           x="28.897831"
+           y="151.52122"
+           id="tspan23244">Mappings</tspan><tspan
+           sodipodi:role="line"
+           style="stroke-width:0.265"
+           x="28.897831"
+           y="162.10455"
+           id="tspan23246">Graph structure</tspan></text>
+    </g>
+    <g
+       id="g7606"
+       inkscape:label="DDR_Spaces"
+       transform="translate(11.220477,54.039342)">
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="131.37177"
+         y="162.11395"
+         id="text1207"><tspan
+           sodipodi:role="line"
+           id="tspan1205"
+           style="stroke-width:0.264583"
+           x="131.37177"
+           y="162.11395">DDR_Spaces</tspan></text>
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:0.468476;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:0.468476, 1.40542;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect3883-5"
+         width="102.18404"
+         height="36.640423"
+         x="130.14641"
+         y="151.48006"
+         rx="1.6784966"
+         ry="1.8468046" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:8.46667px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#0000ff;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="192.64182"
+         y="171.63431"
+         id="text14098"><tspan
+           sodipodi:role="line"
+           id="tspan14096"
+           style="font-size:8.46667px;fill:#0000ff;fill-opacity:1;stroke-width:0.264583"
+           x="192.64182"
+           y="171.63431">degree: r</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:8.46667px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';fill:#009700;fill-opacity:1;stroke:none;stroke-width:0.265;stroke-linecap:square;stroke-linejoin:bevel;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         x="134.32019"
+         y="183.64595"
+         id="text17554"><tspan
+           sodipodi:role="line"
+           id="tspan17552"
+           style="fill:#009700;fill-opacity:1;stroke:none;stroke-width:0.265;stroke-dasharray:none;stroke-opacity:1"
+           x="134.32019"
+           y="183.64595">DDR operators</tspan></text>
+    </g>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.865;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#CurveIn)"
+       d="m 182.46958,158.17371 7.20374,47.34569"
+       id="path7653"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g7587"
+       inkscape:connection-end="#g7606" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.865;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#CurveIn)"
+       d="m 259.90848,199.45907 -17.29063,6.25073"
+       id="path9169"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g7611"
+       inkscape:connection-end="#g7606" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.865;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#CurveIn)"
+       d="M 74.060388,81.52685 62.936678,117.7289"
+       id="path10677"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g7596"
+       inkscape:connection-end="#g7601" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#ff0b00;stroke-width:0.865;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:1.73, 1.73;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow5);fill-opacity:1"
+       d="m 95.091045,144.9471 56.116995,3.72402"
+       id="path11437"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g7601"
+       inkscape:connection-end="#g7587" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.865;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:1.73, 1.73;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow5)"
+       d="M 94.864988,165.79466 161.65505,205.5194"
+       id="path12383"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g7601"
+       inkscape:connection-end="#g7606" />
+  </g>
+</svg>

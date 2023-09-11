@@ -10,7 +10,7 @@ OPTION(BUILD_TEST "Build the testing tree." ON)
 #------------------------------------------------------------------------------#
 
 SET(CMAKE_CXX_COMPILER "g++")
-#SET(CMAKE_CXX_COMPILER "clang++")
+SET(CMAKE_CXX_COMPILER "clang++")
 SET(CMAKE_CXX_STD "-std=c++20")
 SET(CMAKE_CXX_FLAGS "-g -Wall -Wpedantic -Werror -Wno-uninitialized")
 SET(CMAKE_CXX_FLAGS_DEBUGALL "${CMAKE_CXX_STD} ${CMAKE_CXX_FLAGS} -DEIGEN_INITIALIZE_MATRICES_BY_NAN -fsanitize=address,undefined -pthread" )
@@ -38,7 +38,7 @@ INCLUDE_DIRECTORIES(external)
 #------------------------------------------------------------------------------#
 #                             Directories for header libraries
 #------------------------------------------------------------------------------#
-INCLUDE_DIRECTORIES(include)
+INCLUDE_DIRECTORIES(src/Common)
 #------------------------------------------------------------------------------#
 #                             Directories for compiled libraries
 #------------------------------------------------------------------------------#
@@ -67,7 +67,6 @@ ENDIF()
 #                             Directories for schemes
 #------------------------------------------------------------------------------#
 
-INCLUDE_DIRECTORIES(Schemes)
 ADD_SUBDIRECTORY(Schemes)
 
 #------------------------------------------------------------------------------#

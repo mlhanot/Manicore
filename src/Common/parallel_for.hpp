@@ -2,6 +2,8 @@
 #define PARALLEL_FOR
 
 #include <thread>
+#include <forward_list>
+#include <Eigen/Sparse>
 
 /** \file parallel_for.hpp
    Helper to parallelize operations using pthreads.
@@ -67,6 +69,43 @@ namespace Manicore
     }
   }
 
+  /// Function to assemble a global sparse matrix from a procedure that compute local contributions
+  template<typename FType>
+  Eigen::SparseMatrix<double> parallel_assembly(
+      size_t nb_elements /*!< Number of elements over which the threading will be done */,
+      std::pair<size_t,size_t> systemSize /*!< Number of rows and columns of the matrix to assemble */,
+      FType localAssembly /*!< Functor performing the local assembly in a single cell */,
+      bool use_threads = true /*!< Determine if threads must be used or not */)
+  {
+    std::forward_list<Eigen::Triplet<double>> triplets;
+    if (use_threads) {
+      // Select the number of threads
+      unsigned nb_threads_hint = std::thread::hardware_concurrency();
+      unsigned nb_threads = nb_threads_hint == 0 ? 8 : (nb_threads_hint);
+      // Generate the start and end indices
+      auto [start, end] = distributeLoad(nb_elements, nb_threads);
+      // Create vectors of triplets 
+      std::vector<std::forward_list<Eigen::Triplet<double>>> tripletsVect(nb_threads);
+
+      // Assign a task to each thread
+      std::vector<std::thread> my_threads(nb_threads);
+      for (unsigned i = 0; i < nb_threads; ++i) {
+          my_threads[i] = std::thread(localAssembly, start[i], end[i], &tripletsVect[i]);
+      }
+      // Wait for the other threads to finish their task
+      std::for_each(my_threads.begin(), my_threads.end(), std::mem_fn(&std::thread::join));
+      // Join triplets
+      for (unsigned i = 0; i < nb_threads; ++i) {
+        triplets.splice_after(triplets.cbefore_begin(),tripletsVect[i]);
+      }
+    } else { // Single thread
+      localAssembly(0,nb_elements,&triplets);
+    }
+    // Construct the system
+    Eigen::SparseMatrix<double> system(systemSize.first,systemSize.second);
+    system.setFromTriplets(triplets.cbegin(),triplets.cend());
+    return system;
+  }
   
 } // end of namespace
 #endif

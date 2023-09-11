@@ -21,5 +21,10 @@ for i in ${index}; do
   $prefix/test_DDR_interpolate $i
   nberr=$(($nberr+$?))
 done
+for i in ${index}; do
+  echo "Testing spaces_L2product on index $i"
+  $prefix/test_DDR_L2product $i
+  nberr=$(($nberr+$?))
+done
 echo "Found $nberr errors"
 

@@ -120,6 +120,12 @@ namespace Manicore {
                             Eigen::Vector<double,dimension> const &x /*!< Location in the chart */) const 
         {return _metric_maps[m_id]->volume(x);}
 
+        /// Return the relative orientation of a top dimensional cell with respect to the manifold
+        int orientationTopCell(size_t i_cell) const
+        {
+          return _metric_maps[get_map_ids(dimension,i_cell)[0]]->orientation;
+        }
+
         /// Evaluate the hodge star operator
         /** \tparam k Form degree
           \tparam d %Dimension of the cell
@@ -163,13 +169,17 @@ namespace Manicore {
             auto const & E = get_cell_map<_d-1>(i_bd_abs);
             auto x = Geometry::middleSimplex<_d-1>(E.get_reference_elem()[0]);
             auto pM = E.evaluate_DI(bd_rel_map,x);
+    if (d == dimension) {
+            return get_cell_map<_d>(i_cell).get_orientation(0,E.evaluate_I(bd_rel_map,x),pM)*orientationTopCell(i_cell);
+    } else {
             return get_cell_map<_d>(i_cell).get_orientation(0,E.evaluate_I(bd_rel_map,x),pM);
+    }
           } else {
             return get_orientation.template operator()<_d+1>(get_orientation);
           }
         }
       };
-      return get_orientation.template operator()<2>(get_orientation);
+      return get_orientation.template operator()<2>(get_orientation); // Start at dim(T) = 2, since the boundary must be at least of dimension 1
     }
 
     // Doxygen wrongly assumes this is an overload, prevent it from duplicating the entry
@@ -197,7 +207,7 @@ namespace Manicore {
       if constexpr(d == dimension) { // TODO check if this is actually faster
         auto const DJ = F.evaluate_DJ(0,Ix);
         invGF = DJ*metric_inv(get_map_ids(d,i_cell)[0],Ix)*DJ.transpose();
-        sqrtdetG = volume_form(get_map_ids(d,i_cell)[0],Ix) * std::abs(F.evaluate_DI(0,x).determinant());
+        sqrtdetG = volume_form(get_map_ids(d,i_cell)[0],Ix) * std::abs(F.evaluate_DI(0,x).determinant())*orientationTopCell(i_cell);
       } else {
         auto const DI = F.evaluate_DI(0,x);
         Eigen::Matrix<double,d,d> pullbackMetric = DI.transpose()*metric(get_map_ids(d,i_cell)[0],Ix)*DI;

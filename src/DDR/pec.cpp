@@ -171,6 +171,7 @@ template<size_t dimension>
 Eigen::MatrixXd PEC<dimension>::get_trace(size_t k, size_t d, size_t i_cell, size_t j_bd) const
 {
   auto fetch_trace = [&]<size_t l>(auto&& fetch_trace) {
+    assert(k < d && "form degree higher than boundary dimension");
     if constexpr(l == dimension) {
       assert(d == l);
       return _dCellList.template traces<l>()[i_cell].traces[k][j_bd];

@@ -24,7 +24,7 @@ namespace Manicore {
       DOFSpace(Mesh<dimension> const * mesh /*!< Mesh to use */,std::array<size_t,dimension+1> nb_local_dof /*!< Number of degree of freedom on cell of each dimension */) 
         : _mesh(mesh), _nb_local_dofs(nb_local_dof) {;}
 
-      /// Return the number of degree of free on a d-cell
+      /// Return the number of Degree Of Freedoms on a d-cell
       size_t numLocalDofs(size_t d /*!< %Dimension of the cell */) const {return _nb_local_dofs[d];}
       /// Return the total number of Degree Of Freedoms
       size_t dimensionMesh() const;
@@ -100,7 +100,7 @@ namespace Manicore {
   template<size_t dimension>
   size_t DOFSpace<dimension>::localOffset(size_t d_boundary, size_t d, size_t i_bd_rel, size_t i_cell) const 
   {
-    assert(d_boundary < d);
+    assert(d_boundary < d || i_bd_rel == 0);
     size_t rv = i_bd_rel*_nb_local_dofs[d_boundary];
     for (size_t i = 0; i < d_boundary; ++i) {
       rv += _mesh->get_boundary(i,d,i_cell).size()*_nb_local_dofs[i];

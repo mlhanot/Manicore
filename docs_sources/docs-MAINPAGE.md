@@ -158,3 +158,6 @@ The operator can then be used directly. For example, to compute the differential
   ddr_spaces.full_diff(k,d,iT)*ddr_spaces.dofspace(k).restrict(d,iT,interp);
 \endcode
 
+The various available components are summarized in the following diagram:
+
+<IMG SRC="./DDR.svg" ALT="Diagram showing the main components in DDR_Spaces" STYLE="width: 50%;">

@@ -11,6 +11,8 @@
 /**
   @defgroup DDR
   @brief Classes implementing the DDR-PEC method on manifolds
+
+<IMG SRC="./DDR.svg" ALT="Diagram showing the main components in DDR_Spaces" STYLE="width: 50%;">
 */
 
 namespace Manicore {
@@ -41,27 +43,27 @@ namespace Manicore {
 
 
       /// Return the mass matrix for the k-forms on the i-th d-cell in the basis PL(r,k,d)
-      /** \return Mass matrix in the basis \f$ P_r\Lambda^k(\mathbb{R}^d)\f$ */
+      /** \return Mass matrix in the basis \f$ \mathcal{P}_r\Lambda^k(\mathbb{R}^d)\f$ */
       Eigen::MatrixXd get_mass(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */) const; 
       /// Return the trace for the k-forms on the i-th d-cell onto its j-th (d-1)-neighbour
-      /** \return Trace matrix in the basis \f$ P_r\Lambda^k(\mathbb{R}^d) \rightarrow P_r\Lambda^k(\mathbb{R}^{d-1}) \f$ */
+      /** \return Trace matrix in the basis \f$ \mathcal{P}_r\Lambda^k(\mathbb{R}^d) \rightarrow \mathcal{P}_r\Lambda^k(\mathbb{R}^{d-1}) \f$ */
       Eigen::MatrixXd get_trace(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */, size_t j_bd /*!< Relative index of the boundary element (e.g. between 0 and 2 for a triangle)*/) const; 
 
       // Getter for the generic operators matrices
       /// Return the image of the differential operator
-      /** \return \f$ P_r\Lambda^l(\mathbb{R}^d) \rightarrow P_{r-1}\Lambda^{l+1}(\mathbb{R}^{d}) \f$ */
+      /** \return \f$ \mathcal{P}_r\Lambda^l(\mathbb{R}^d) \rightarrow \mathcal{P}_{r-1}\Lambda^{l+1}(\mathbb{R}^{d}) \f$ */
       const Eigen::MatrixXd & get_diff(size_t l /*!<Form degree*/, size_t d /*!<%Dimension*/) const {return _list_diff[_cmp_ind(l,d)];}
       /// Return the image of the Koszul operator
-      /** \return \f$ P_r\Lambda^l(\mathbb{R}^d) \rightarrow P_{r+1}\Lambda^{l-1}(\mathbb{R}^{d}) \f$ */
+      /** \return \f$ \mathcal{P}_r\Lambda^l(\mathbb{R}^d) \rightarrow \mathcal{P}_{r+1}\Lambda^{l-1}(\mathbb{R}^{d}) \f$ */
       const Eigen::MatrixXd & get_Koszul(size_t l /*!<Form degree*/, size_t d /*!<%Dimension*/) const {return _list_Koszul[_cmp_ind(l,d)];}
       /// Return the image of the differential operator
-      /** \return \f$ P_r\Lambda^l(\mathbb{R}^d) \rightarrow P_{r}\Lambda^{l+1}(\mathbb{R}^{d}) \f$ */
+      /** \return \f$ \mathcal{P}_r\Lambda^l(\mathbb{R}^d) \rightarrow \mathcal{P}_{r}\Lambda^{l+1}(\mathbb{R}^{d}) \f$ */
       const Eigen::MatrixXd & get_diff_as_degr(size_t l /*!<Form degree*/, size_t d /*!<%Dimension*/) const {return _list_diff_as_degr[_cmp_ind(l,d)];}
       /// Return the image of the trimmed polynomial basis
-      /** \return \f$ P_r^{-}\Lambda^l(\mathbb{R}^d) \rightarrow P_{r}\Lambda^{l}(\mathbb{R}^{d}) \f$ */
+      /** \return \f$ \mathcal{P}_r^{-}\Lambda^l(\mathbb{R}^d) \rightarrow \mathcal{P}_{r}\Lambda^{l}(\mathbb{R}^{d}) \f$ */
       const Eigen::MatrixXd & get_trimmed(size_t l /*!<Form degree*/, size_t d /*!<%Dimension*/) const {return _list_trimmed[_cmp_ind(l,d)];}
       /// Return the image of the Koszul operator
-      /** \return \f$ P_{-1}\Lambda^l(\mathbb{R}^d) \rightarrow P_{r}\Lambda^{l+1}(\mathbb{R}^{d}) \f$ */
+      /** \return \f$ \mathcal{P}_{r-1}\Lambda^l(\mathbb{R}^d) \rightarrow \mathcal{P}_{r}\Lambda^{l+1}(\mathbb{R}^{d}) \f$ */
       const Eigen::MatrixXd & get_reduced_Koszul_m1(size_t l /*!<Form degree*/, size_t d /*!<%Dimension*/) const {return _list_reduced_Koszul_m1[_cmp_ind(l,d)];}
 
     private:

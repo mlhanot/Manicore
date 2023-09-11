@@ -47,17 +47,17 @@ namespace Manicore {
                                   std::array<int,dimension> const * dqr_p = nullptr /*!< Quadrature degree to use */) const;
 
       /// Compute the full differential operator
-      /** \return \f$\star d_r^k \f$ in \f$P_r\Lambda^{d-k-1}(\mathbb{R}^d)\f$ */
+      /** \return \f$\star d_r^k \f$ in \f$\mathcal{P}_r\Lambda^{d-k-1}(\mathbb{R}^d)\f$ */
       const Eigen::MatrixXd & full_diff(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */) const // Return \star d in PL(r,d-k-1,d)
       {
         assert(d <= dimension && k < d && i_cell < _ops[d].size() && "Access of diff out of range");
         return _ops[d][i_cell].full_diff[k];
       }
       /// Compute the projected differential operator
-      /** \return \f$\star \underline{d}_r^k\f$ on a cell including its boundary in \f$\cup_{d' = k}^{d} P_r\Lambda^{d-k-1}(\mathbb{R}^{d'})\f$ */
+      /** \return \f$\star \underline{d}_r^k\f$ on a cell including its boundary in \f$\cup_{d' = k}^{d} \mathcal{P}_r\Lambda^{d-k-1}(\mathbb{R}^{d'})\f$ */
       Eigen::MatrixXd compose_diff(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */) const; 
       /// Compute the potential operator
-      /** \return \f$\star P_r^k\f$ in \f$P_r\Lambda^{d-k}(\mathbb{R}^d)\f$ */
+      /** \return \f$\star P_r^k\f$ in \f$\mathcal{P}_r\Lambda^{d-k}(\mathbb{R}^d)\f$ */
       const Eigen::MatrixXd & potential(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */) const // Return \star P^k in PL(r,d-k,d)
       {
         assert(d <= dimension && k <= d && i_cell< _ops[d].size() && "Access of potential out of range");
@@ -68,8 +68,16 @@ namespace Manicore {
       DOFSpace<dimension> const & dofspace(size_t k/*!< Form degree*/) const {
         return _dofspace[k];
       }
+      /// Return the Mesh associated with the class
+      const Mesh<dimension>* mesh() const {return _mesh;}
       /// Return the polynomial degree associated with the class
       int degree() const {return _r;}
+
+      /// Compute the local \f$L^2\f$ product (including the cell boundary)
+      /** The contribution on the cell is \f$\int_f \langle P^k , P^k \rangle \text{vol}_f \f$.
+        The contribution from a cell \f$f' \in \partial f \f$ of the boundary is \f$\int_f \langle \text{tr}_{f'} P^k_f - P^k_{f'} , \text{tr}_{f'} P^k_f - P^k_{f'} \rangle \text{vol}_{f'} \f$.
+        */
+      Eigen::MatrixXd computeL2Product(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */) const;
 
     private:
       struct DDR_Operators { // one for each form degree k
