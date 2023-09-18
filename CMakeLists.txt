@@ -48,12 +48,14 @@ INCLUDE_DIRECTORIES(src/Loader)
 INCLUDE_DIRECTORIES(src/Quadrature)
 INCLUDE_DIRECTORIES(src/Integration)
 INCLUDE_DIRECTORIES(src/DDR)
+INCLUDE_DIRECTORIES(src/Export)
 
 ADD_SUBDIRECTORY(src/Mesh)
 ADD_SUBDIRECTORY(src/Loader)
 ADD_SUBDIRECTORY(src/Quadrature)
 ADD_SUBDIRECTORY(src/Integration)
 ADD_SUBDIRECTORY(src/DDR)
+ADD_SUBDIRECTORY(src/Export)
 
 #------------------------------------------------------------------------------#
 #                             Directories for test

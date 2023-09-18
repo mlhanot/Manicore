@@ -98,6 +98,16 @@ namespace Manicore {
         Eigen::Vector3d get_3D_embedding (size_t m_id /*!< Id of the embedding to use */,
                                           Eigen::Vector<double,dimension> const &x /*!< Location in the chart */) const 
         {return _maps[m_id]->I(x);}
+        /// Interface to the extrinsic mapping
+        /** Optional function to help viewing the embedding of the manifold. 
+          This is not used in any computation and can be set freely in the mesh shared library 
+
+          Using the differential of I should always map into the correct tangent space, 
+          whereas J could introduce a deviation if it is not constant along the normal component.
+         */
+        Eigen::Matrix<double,3,dimension> get_3D_pushforward (size_t m_id /*!< Id of the embedding to use */,
+                                          Eigen::Vector<double,dimension> const &x /*!< Location in the chart */) const 
+        {return _maps_pullback[m_id]->DI(x);}
 
         // Access to the geometric structure
         /// Return the i-th dCell_map
@@ -142,6 +152,7 @@ namespace Manicore {
         typename dCell_graph<dimension>::Collection _cells_graph;
         std::unique_ptr<Maps_loader<dimension>> _loader_ref; // Tie the life of the shared library to the mesh (must be destroyed AFTER every pointer to any mapping 
         std::vector<std::unique_ptr<ParametrizedMap<3,dimension>>> _maps;
+        std::vector<std::unique_ptr<ParametrizedDerivedMap<3,dimension>>> _maps_pullback;
         std::vector<std::unique_ptr<ParametrizedMetricMap<dimension>>> _metric_maps;
         // TODO use the generic solution of the class PEC
         std::vector<dCell_map<dimension,0>> _geo0;

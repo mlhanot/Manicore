@@ -73,6 +73,9 @@ namespace Manicore {
   /// Do nothing mapping (always return null)
   template<size_t dimension,size_t d>
     ParametrizedMap<dimension,d> *DefaultMapping(size_t id) {return nullptr;}
+  /// Do nothing mapping (always return null)
+  template<size_t dimension,size_t d>
+    ParametrizedDerivedMap<dimension,d> *DefaultDerivedMapping(size_t id) {return nullptr;}
 
 } // namespace
 

@@ -39,6 +39,10 @@ void Maps_loader<2>::_setup_maps() {
   if((error = dlerror()) != NULL) {
     _3D_embedding = DefaultMapping<3,2>;
   }
+  _3D_pullback = reinterpret_cast<decltype(_3D_pullback)>(dlsym(_handle,"List_pullback_2to3"));
+  if((error = dlerror()) != NULL) {
+    _3D_pullback = DefaultDerivedMapping<3,2>;
+  }
   _metrics = reinterpret_cast<decltype(_metrics)>(dlsym(_handle,"List_metrics_2D"));
   if((error = dlerror()) != NULL) {
     std::cerr<<"Failed to retrieve edge map list: "<<error<<std::endl;
@@ -71,7 +75,6 @@ Maps_loader<dimension>::~Maps_loader() {
   dlclose(_handle);
 }
 
-
 template<size_t dimension>
 ParametrizedMap<3,dimension>* Maps_loader<dimension>::get_new_embedding_3D(size_t id) const {
   auto func = (*_3D_embedding)(id);
@@ -80,6 +83,19 @@ ParametrizedMap<3,dimension>* Maps_loader<dimension>::get_new_embedding_3D(size_
 template<size_t dimension>
 ParametrizedMap<3,dimension>* Maps_loader<dimension>::get_new_embedding_3D(size_t id, std::vector<double> const &extra) const {
   auto func = (*_3D_embedding)(id);
+  if (extra.size() > 0) {
+    func->_extra = extra;
+  }
+  return func;
+}
+template<size_t dimension>
+ParametrizedDerivedMap<3,dimension>* Maps_loader<dimension>::get_new_pullback_3D(size_t id) const {
+  auto func = (*_3D_pullback)(id);
+  return func;
+}
+template<size_t dimension>
+ParametrizedDerivedMap<3,dimension>* Maps_loader<dimension>::get_new_pullback_3D(size_t id, std::vector<double> const &extra) const {
+  auto func = (*_3D_pullback)(id);
   if (extra.size() > 0) {
     func->_extra = extra;
   }

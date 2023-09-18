@@ -35,7 +35,7 @@ class SaveCSV {
               return _maxwell->ddrcore().potential(k,2,iT)*_maxwell->ddrcore().dofspace(k).restrict(2,iT,u);},
             filename.c_str())) _bad = true;
     }
-    void saveNorm(int k, Eigen::Ref<const Eigen::VectorXd> const & u, const char* basename, int step) {
+    void saveSq(int k, Eigen::Ref<const Eigen::VectorXd> const & u, const char* basename, int step) {
       if (_bad) return;
       std::string filename = _outdir + basename + "_" + std::to_string(step) + ".csv";
       if (_exporter.saveSq(2-k,
@@ -57,41 +57,24 @@ constexpr bool use_threads = true;
 int main(int argc, char *argv[]) {
   // Parse options
   int degree;
-  double dt, t0, tmax, tprint;
-  std::string logfile, outdir;
+  double dt, tmax, tprint;
+  std::string outdir;
   po::options_description desc("Allowed options");
   desc.add_options()
-    ("help", "produce help message")
+    ("help,h", "Print this message")
     ("degree,d", po::value<int>(&degree)->default_value(0), "Polynomial degree")
-    ("step,t", po::value<double>(&dt)->default_value(1e-5), "Time step")
-    ("length,l", po::value<double>(&tmax)->default_value(2.*std::numbers::pi), "Simulation length")
-    ("start", po::value<double>(&t0)->default_value(0.), "Starting time of the simulation")
+    ("step,t", po::value<double>(&dt)->default_value(1e-1), "Time step")
+    ("length,l", po::value<double>(&tmax)->default_value(2.*std::numbers::pi), "Simulation time")
     ("print,p", po::value<double>(&tprint)->default_value(1e-2), "Interval of simulation time between prints")
-    ("logfile,f", po::value<std::string>(), "File to write logs")
     ("outdir,o", po::value<std::string>(), "Directory in which output the fields data")
 ;
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
   po::notify(vm);
   if (vm.count("help")) {
-    std::cout << "Solve the 2 dimensional Maxwell on a sphere using a Crank-Nicolson time stepping \n"; 
+    std::cout<<"Simplified executable used to test the interpolation and export of functions"<<std::endl;
     std::cout << desc << "\n";
     return 1;
-  }
-  if (vm.count("logfile")) {
-    logfile = vm["logfile"].as<std::string>();
-    std::cout<<"Using \""<<logfile<<"\" as output"<<std::endl;
-  } else {
-    logfile = "maxwell_d" + std::to_string(degree) + ".log";
-    std::cout<<"No filename provided to output logs, defaulting to \""<<logfile<<"\""<<std::endl;
-  }
-  // Prepare logfile
-  std::fstream logfh{logfile, logfh.trunc | logfh.out};
-  if (logfh.is_open()) {
-    logfh << "# Using dt = "<<dt<<" and degree "<<degree<<std::endl;
-    logfh << "# t\tE\tdE\tB\tG\tE^2+B^2"<<std::endl;
-  } else {
-    std::cerr<<"Cannot open logfile, skipping"<<std::endl;
   }
 
   // Build the problem
@@ -106,9 +89,10 @@ int main(int argc, char *argv[]) {
   maxwell.compute();
 
   // Select solution
-  std::unique_ptr<Solution> sol(new Solution1());
+  std::unique_ptr<Solution> sol(new Solution0());
+  //std::unique_ptr<Solution> sol(new Solution2());
   // Initial values 
-  double t = t0;
+  double t = 0.;
   sol->_t = t;
   Eigen::VectorXd J_hOld = maxwell.ddrcore().template interpolate<1>(std::bind_front(&Solution::J,sol.get()));
   MaxwellVector uOld(maxwell);
@@ -119,53 +103,31 @@ int main(int argc, char *argv[]) {
   if (saveCSV) {
     saveCSV->save(2, uOld.B(), "B", 0);
     saveCSV->save(1, uOld.E(), "E", 0);
-    saveCSV->saveNorm(1, uOld.E(), "NormE", 0);
+    saveCSV->saveSq(1, uOld.E(), "NormE", 0);
   }
   {
     double normE = maxwell.norm(uOld.E(),1);
     double normdE = maxwell.normd(uOld.E(),1);
     double normB = maxwell.norm(uOld.B(),2);
     std::cout<<"T = "<<t<<" Initial values: E: "<<normE<<" dE: "<<normdE<<" B: "<<normB<<" E+B: "<<normE*normE+normB*normB<<std::endl;
-    if (logfh.is_open()) {
-      logfh <<t<<"\t"<<normE<<"\t"<<normdE<<"\t"<<normB<<"\t"<<0.<<"\t"<<normE*normE+normB*normB<<std::endl;
-    }
   }
   // Declare containers
   MaxwellVector u_h(maxwell);
   int acc = 0;
-  double tprev = -1.e151;
 
   // Time loop
   while(t < tmax) {
     t += dt;
     sol->_t = t;
-    Eigen::VectorXd rho_h = maxwell.ddrcore().template interpolate<0>(std::bind_front(&Solution::rho,sol.get()));
-    Eigen::VectorXd J_h = maxwell.ddrcore().template interpolate<1>(std::bind_front(&Solution::J,sol.get()));
-    maxwell.assembleRHS(rho_h,0.5*(J_h + J_hOld),uOld.E(),uOld.B()); // CN
-    u_h = maxwell.solve();
-    // Setup next iteration
-    uOld = u_h;
-    J_hOld = J_h;
-    // Process results
-    double normG = maxwell.norm(u_h.G(),0);
-    double normE = maxwell.norm(u_h.E(),1);
-    double normdE = maxwell.normd(u_h.E(),1);
-    double normB = maxwell.norm(u_h.B(),2);
-    if (logfh.is_open()) {
-      logfh <<t<<"\t"<<normE<<"\t"<<normdE<<"\t"<<normB<<"\t"<<0.<<"\t"<<normE*normE+normB*normB<<std::endl;
-    }
-    if (t - tprev > tprint) {
-      tprev = t;
-      acc++;
-      std::cout<<"Time: "<<t<<"\n";
-      std::cout<<"E+B: "<<normE*normE+normB*normB;
-      std::cout<<" E: "<<normE<<" dE: "<<normdE<<" B: "<<normB<<" G: "<<normG<<std::endl;
+  uOld.E() = maxwell.ddrcore().template interpolate<1>(std::bind_front(&Solution::E,sol.get()));
+  uOld.B() = maxwell.ddrcore().template interpolate<2>(std::bind_front(&Solution::B,sol.get()));
+  std::cout<<"T: "<<t<<std::endl;
+  acc++;
       if (saveCSV) {
         saveCSV->save(2, uOld.B(), "B", acc);
         saveCSV->save(1, uOld.E(), "E", acc);
-        saveCSV->saveNorm(1, uOld.E(), "NormE", acc);
+        saveCSV->saveSq(1, uOld.E(), "NormE", acc);
       }
-    }
   }
 
   return 0;

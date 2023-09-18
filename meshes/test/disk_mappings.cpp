@@ -143,7 +143,7 @@ struct north_embedding : public Manicore::ParametrizedMap<3,2>
     return Eigen::Vector<double,3>{2.*X/(1.+r2),2.*Y/(1.+r2),(1. - r2)/(1. + r2)};
   }
   Eigen::Vector<double,2> J(Eigen::Vector<double,3> const & x_in) const override final {
-    return Eigen::Vector<double,2>{};
+    return Eigen::Vector<double,2>{x_in(0)/(1. + x_in(2)),x_in(1)/(1. + x_in(2))};
   }
 };
 struct south_embedding : public Manicore::ParametrizedMap<3,2>
@@ -155,7 +155,41 @@ struct south_embedding : public Manicore::ParametrizedMap<3,2>
     return Eigen::Vector<double,3>{2.*X/(1.+r2),2.*Y/(1.+r2),(r2 - 1.)/(1. + r2)};
   }
   Eigen::Vector<double,2> J(Eigen::Vector<double,3> const & x_in) const override final {
-    return Eigen::Vector<double,2>{};
+    return Eigen::Vector<double,2>{x_in(0)/(1. - x_in(2)),x_in(1)/(1. - x_in(2))};
+  }
+};
+struct north_pullback : public Manicore::ParametrizedDerivedMap<3,2>
+{
+  Eigen::Matrix<double,3,2> DI(Eigen::Vector<double,2> const & x_in) const override final {
+    double X = x_in(0);
+    double Y = x_in(1);
+    double r2 = X*X + Y*Y;
+    double invR = 1./((1. + r2)*(1. + r2));
+    return Eigen::Matrix<double,3,2>{{-4.*X*X*invR + 2./(1. + r2), -4.*X*Y*invR},
+                                     {-4.*X*Y*invR, -4.*Y*Y*invR + 2./(1. + r2)},
+                                     {-4.*X*invR, -4.*Y*invR}};
+  }
+  Eigen::Matrix<double,2,3> DJ(Eigen::Vector<double,3> const & x_in) const override final {
+    double x = x_in(0), y = x_in(1), z = x_in(2);
+    return Eigen::Matrix<double,2,3>{{1./(1. + z),0.,-x/((1. + z)*(1. + z))},
+                                     {0.,1./(1. + z),-y/((1. + z)*(1. + z))}};
+  }
+};
+struct south_pullback : public Manicore::ParametrizedDerivedMap<3,2>
+{
+  Eigen::Matrix<double,3,2> DI(Eigen::Vector<double,2> const & x_in) const override final {
+    double X = x_in(0);
+    double Y = x_in(1);
+    double r2 = X*X + Y*Y;
+    double invR = 1./((1. + r2)*(1. + r2));
+    return Eigen::Matrix<double,3,2>{{-4.*X*X*invR + 2./(1. + r2), -4.*X*Y*invR},
+                                     {-4.*X*Y*invR, -4.*Y*Y*invR + 2./(1. + r2)},
+                                     {4.*X*invR, 4.*Y*invR}};
+  }
+  Eigen::Matrix<double,2,3> DJ(Eigen::Vector<double,3> const & x_in) const override final {
+    double x = x_in(0), y = x_in(1), z = x_in(2);
+    return Eigen::Matrix<double,2,3>{{1./(1. - z),0.,x/((1. - z)*(1. - z))},
+                                     {0.,1./(1. - z),y/((1. - z)*(1. - z))}};
   }
 };
 
@@ -221,7 +255,19 @@ Manicore::ParametrizedMap<3,2>* List_embedding_2to3(size_t id) {
     case(1):
       return new south_embedding;
     default:
-      throw std::runtime_error("Unexpected embbeding id");
+      throw std::runtime_error("Unexpected embedding id");
+      return nullptr;
+  }
+}
+
+Manicore::ParametrizedDerivedMap<3,2>* List_pullback_2to3(size_t id) {
+  switch(id) {
+    case(0):
+      return new north_pullback;
+    case(1):
+      return new south_pullback;
+    default:
+      throw std::runtime_error("Unexpected embedding id");
       return nullptr;
   }
 }

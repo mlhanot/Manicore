@@ -6,6 +6,7 @@
 
 #include "ddr_spaces.hpp"
 #include "parallel_for.hpp"
+#include <atomic>
 
 #include <unsupported/Eigen/src/IterativeSolvers/Scaling.h>
 
@@ -31,7 +32,6 @@ namespace Manicore {
       typedef Eigen::SparseMatrix<double> SystemMatrixType;
       /// Type used to store the solver
       typedef Eigen::SparseLU<SystemMatrixType,Eigen::COLAMDOrdering<int> > SolverType;
-//      typedef Eigen::FullPivLU<Eigen::MatrixXd> SolverType;
       /// Name of the solver
       static constexpr std::string_view SolverName = "SparseLU";
 
@@ -57,12 +57,11 @@ namespace Manicore {
       double timeStep() const {return _dt;}
 
       /// Assemble the Right-Hand side from the given interpolates
-      void assembleRHS(Eigen::Ref<const Eigen::VectorXd> const & interp0 /*!< Interpolate of the 0 form */, 
-                       Eigen::Ref<const Eigen::VectorXd> const & interp1 /*!< Interpolate of the 1 form */, 
-                       Eigen::Ref<const Eigen::VectorXd> const & interp2 /*!< Interpolate of the 2 form */);
+      void assembleRHS(Eigen::Ref<const Eigen::VectorXd> const & rho /*!< Interpolate of the electric charge (0 form) */, 
+                       Eigen::Ref<const Eigen::VectorXd> const & J /*!< Interpolate of the current (1 form)*/, 
+                       Eigen::Ref<const Eigen::VectorXd> const & EOld /*!< Previous value of E_h */, 
+                       Eigen::Ref<const Eigen::VectorXd> const & BOld /*!< Previous value of B_h*/);
 
-      /// Set the right-hand side from a vector 
-      void setRHS (const Eigen::VectorXd &rhs);
       /// Setup the solver
       void compute();
       /// Check if the vector u if a solution up to a given relative accuracy
@@ -73,16 +72,18 @@ namespace Manicore {
       Eigen::VectorXd solve(const Eigen::VectorXd &rhs);      
 
       /// Compute the discrete norm of a \f$k\f$-form
+      /** 
+        Compute \f$ \Vert E \Vert_{h,k} \f$ 
+        */
       template<typename Derived>
       double norm(Eigen::MatrixBase<Derived> const &E /*!< Discrete form */, 
                   size_t k /*!< Form degree */) const;
-      /// Compute the discrete error of the differential of a \f$k\f$-form
+      /// Compute the discrete norm of the differential of a \f$k\f$-form
       /** 
-        Compute \f$ \Vert d_h^k E - dE \Vert_{h,k+1} \f$ 
+        Compute \f$ \Vert d_h^k E \Vert_{h,k+1} \f$ 
         */
-      template<typename Derived, typename Derived2>
+      template<typename Derived>
       double normd(Eigen::MatrixBase<Derived> const &E /*!< Discrete form */, 
-                   Eigen::MatrixBase<Derived2> const &dE /*!< Reference */, 
                    size_t k /*!< Form degree */) const;
 
     private:
@@ -253,7 +254,8 @@ namespace Manicore {
         const size_t offset = gOffset + _ddrcore.dofspace(k).globalOffset(iD,boundaries[iF]);
         const size_t lOffset = _ddrcore.dofspace(k).localOffset(iD,2,iF,iT);
         for (size_t iRow = 0; iRow < nbLDofs; ++iRow) { // Iterate local dofs 
-          _rhs[offset+iRow] += R(lOffset+iRow);
+          std::atomic_ref<double> atomicRHS(_rhs[offset+iRow]); // Prevent race condition when using several thread
+          atomicRHS.fetch_add(R(lOffset+iRow),std::memory_order_relaxed); // Only requires the atomicity of the addition
         } // iRow
       } // iF
     } // iD
@@ -291,12 +293,12 @@ namespace Manicore {
     auto batch_local_assembly = [&](size_t start, size_t end, std::forward_list<Eigen::Triplet<double>> * triplets)->void {
       for (size_t iT = start; iT < end; iT++) {
         assembleLocalContributionH(ALoc0h[iT],iT,0,triplets);
-        assembleLocalContribution(ALoc01[iT],iT,0,1,triplets);
-        assembleLocalContribution(ALoc01[iT].transpose(),iT,1,0,triplets);
-        assembleLocalContribution(_dt*ALoc12[iT],iT,1,2,triplets);
-        assembleLocalContribution(_dt*ALoc12[iT].transpose(),iT,2,1,triplets);
-        assembleLocalContribution(-1.*_ALoc11[iT],iT,1,1,triplets);
-        assembleLocalContribution(_ALoc22[iT],iT,2,2,triplets);
+        assembleLocalContribution(ALoc01[iT],iT,0,1,triplets); // Constraint <E,dv0>
+        assembleLocalContribution(ALoc01[iT].transpose(),iT,1,0,triplets); // Constraint <dA,v1>
+        assembleLocalContribution(0.5*_dt*ALoc12[iT],iT,1,2,triplets); // <dE,v2>
+        assembleLocalContribution(0.5*_dt*ALoc12[iT].transpose(),iT,2,1,triplets); // <B,dv1>
+        assembleLocalContribution(-1.*_ALoc11[iT],iT,1,1,triplets); // -<E,v1>
+        assembleLocalContribution(_ALoc22[iT],iT,2,2,triplets); // <B,v2>
       }
     };
     _output<< "[MaxwellProblem] Assembling global system from local contributions..."<<std::flush;
@@ -305,22 +307,25 @@ namespace Manicore {
     _output<<"\r[MaxwellProblem] Assembled global system from local contributions    "<<std::endl;
   };
       
-  void MaxwellProblem::assembleRHS(Eigen::Ref<const Eigen::VectorXd> const & interp0, Eigen::Ref<const Eigen::VectorXd> const & interp1, Eigen::Ref<const Eigen::VectorXd> const & interp2)
+  void MaxwellProblem::assembleRHS(Eigen::Ref<const Eigen::VectorXd> const & rho, Eigen::Ref<const Eigen::VectorXd> const & J,Eigen::Ref<const Eigen::VectorXd> const & EOld, Eigen::Ref<const Eigen::VectorXd> const & BOld)
   {
     auto batch_local_assembly = [&](size_t start,size_t end)->void {
       for (size_t iT = start; iT < end; ++iT) {
         Eigen::VectorXd loc;
         // 0 forms
-        assert(interp0.size() == dimensionG() && "Incorrect size of interp0");
-        loc = _ALoc00[iT]*_ddrcore.dofspace(0).restrict(2,iT,interp0);
+        assert(rho.size() == dimensionG() && "Incorrect size of rho");
+        loc = -_ALoc00[iT]*_ddrcore.dofspace(0).restrict(2,iT,rho);
         assembleLocalContribution(loc,iT,0);
         // 1 forms
-        assert(interp1.size() == dimensionE() && "Incorrect size of interp1");
-        loc = _ALoc11[iT]*_ddrcore.dofspace(1).restrict(2,iT,interp1);
+        assert(J.size() == dimensionE() && "Incorrect size of J");
+        assert(EOld.size() == dimensionE() && "Incorrect size of EOld");
+        loc = _ALoc11[iT]*_ddrcore.dofspace(1).restrict(2,iT,_dt*J - EOld);
+        loc -= 0.5*_dt*_ddrcore.compose_diff(1,2,iT).transpose()*_ALoc22[iT]*_ddrcore.dofspace(2).restrict(2,iT,BOld);
         assembleLocalContribution(loc,iT,1);
         // 2 forms
-        assert(interp2.size() == dimensionB() && "Incorrect size of interp2");
-        loc = _ALoc22[iT]*_ddrcore.dofspace(2).restrict(2,iT,interp2);
+        assert(BOld.size() == dimensionB() && "Incorrect size of BOld");
+        loc = _ALoc22[iT]*_ddrcore.dofspace(2).restrict(2,iT,BOld);
+        loc -= 0.5*_dt*_ALoc22[iT]*_ddrcore.compose_diff(1,2,iT)*_ddrcore.dofspace(1).restrict(2,iT,EOld);
         assembleLocalContribution(loc,iT,2);
       }
     };
@@ -338,13 +343,6 @@ namespace Manicore {
       return false;
     }
     return true;
-  }
-  void MaxwellProblem::setRHS (const Eigen::VectorXd &rhs) {
-    if (rhs.size() != _rhs.size()) {
-      std::cerr << "[MaxwellProblem] Setting rhs from vector failed, size dismatched. Expected :"<<_rhs.size()<<" got :"<<rhs.size()<<std::endl;
-      return;
-    }
-    _rhs = rhs;
   }
   void MaxwellProblem::compute() {
     _output << "[MaxwellProblem] Setting solver "<<SolverName<<" with "<<dimensionSystem()<<" degrees of freedom"<<std::endl;
@@ -386,6 +384,7 @@ namespace Manicore {
   template<typename Derived>
   double MaxwellProblem::norm(Eigen::MatrixBase<Derived> const &E, size_t k) const
   {
+    assert(E.size() == _ddrcore.dofspace(k).dimensionMesh() && "Mismatched dimension, wrong form degree?");
     const size_t nb_cell = _ddrcore.mesh()->n_cells(2);
     std::vector<double> accErr(nb_cell);
     std::function<void(size_t start, size_t end)> compute_local = [&](size_t start, size_t end)->void {
@@ -416,16 +415,16 @@ namespace Manicore {
     return std::sqrt(acc);
   }
 
-  template<typename Derived, typename Derived2>
-  double MaxwellProblem::normd(Eigen::MatrixBase<Derived> const &E,Eigen::MatrixBase<Derived2> const &dE,size_t k) const
+  template<typename Derived>
+  double MaxwellProblem::normd(Eigen::MatrixBase<Derived> const &E,size_t k) const
   {
     if (k == 2) return 0.;
+    assert(E.size() == _ddrcore.dofspace(k).dimensionMesh() && "Mismatched dimension, wrong form degree?");
     const size_t nb_cell = _ddrcore.mesh()->n_cells(2);
     std::vector<double> accErr(nb_cell);
     std::function<void(size_t start, size_t end)> compute_local = [&](size_t start, size_t end)->void {
       for (size_t iT = start; iT < end; ++iT){
         Eigen::VectorXd locE = _ddrcore.compose_diff(k,2,iT)*_ddrcore.dofspace(k).restrict(2,iT,E);
-        locE -= _ddrcore.dofspace(k+1).restrict(2,iT,dE);
         Eigen::MatrixXd matL2;
         switch(k) {
           case 0:

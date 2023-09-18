@@ -55,9 +55,11 @@ Mesh<dimension> * Mesh_builder<dimension>::build(const char * meshfile, const ch
       if (outer_dim == 3) {
         if (map["Arguments"][i].is_null()) {
           mesh_p->_maps.emplace_back(maps_p->get_new_embedding_3D(i));
+          mesh_p->_maps_pullback.emplace_back(maps_p->get_new_pullback_3D(i));
         } else {
           std::vector<double> extra = map["Arguments"][i];
           mesh_p->_maps.emplace_back(maps_p->get_new_embedding_3D(i,extra));
+          mesh_p->_maps_pullback.emplace_back(maps_p->get_new_pullback_3D(i,extra));
         }
       }
     }

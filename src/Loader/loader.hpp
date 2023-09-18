@@ -26,6 +26,8 @@ namespace Manicore {
 
       ParametrizedMap<3,dimension>* get_new_embedding_3D(size_t id) const;
       ParametrizedMap<3,dimension>* get_new_embedding_3D(size_t id, std::vector<double> const &extra) const;
+      ParametrizedDerivedMap<3,dimension>* get_new_pullback_3D(size_t id) const;
+      ParametrizedDerivedMap<3,dimension>* get_new_pullback_3D(size_t id, std::vector<double> const &extra) const;
       ParametrizedMetricMap<dimension>* get_new_metrics(size_t id) const;
       ParametrizedMetricMap<dimension>* get_new_metrics(size_t id, std::vector<double> const &extra) const;
       ParametrizedMap<dimension,1>* get_new_edge_map(size_t id) const;
@@ -44,6 +46,7 @@ namespace Manicore {
     private:
       void *_handle;
       ParametrizedMap<3,dimension>* (*_3D_embedding)(size_t);
+      ParametrizedDerivedMap<3,dimension>* (*_3D_pullback)(size_t);
       ParametrizedMetricMap<dimension>* (*_metrics)(size_t);
       ParametrizedMap<dimension,1>* (*_edge_maps)(size_t);
       ParametrizedMap<dimension,2>* (*_face_maps)(size_t);
