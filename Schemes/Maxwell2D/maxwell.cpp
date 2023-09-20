@@ -7,6 +7,8 @@
 #include <functional>
 
 #include <fstream>
+#include <limits>
+#include <iomanip>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
@@ -88,6 +90,7 @@ int main(int argc, char *argv[]) {
   // Prepare logfile
   std::fstream logfh{logfile, logfh.trunc | logfh.out};
   if (logfh.is_open()) {
+    logfh << std::setprecision(std::numeric_limits<double>::digits10+1);
     logfh << "# Using dt = "<<dt<<" and degree "<<degree<<std::endl;
     logfh << "# t\tE\tdE\tB\tG\tE^2+B^2"<<std::endl;
   } else {
