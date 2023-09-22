@@ -63,7 +63,7 @@ namespace Manicore {
       /** \return \f$ \mathcal{P}_r^{-}\Lambda^l(\mathbb{R}^d) \rightarrow \mathcal{P}_{r}\Lambda^{l}(\mathbb{R}^{d}) \f$ */
       const Eigen::MatrixXd & get_trimmed(size_t l /*!<Form degree*/, size_t d /*!<%Dimension*/) const {return _list_trimmed[_cmp_ind(l,d)];}
       /// Return the image of the Koszul operator
-      /** \return \f$ \mathcal{P}_{r-1}\Lambda^l(\mathbb{R}^d) \rightarrow \mathcal{P}_{r}\Lambda^{l+1}(\mathbb{R}^{d}) \f$ */
+      /** \return \f$ \mathcal{P}_{r-1}\Lambda^l(\mathbb{R}^d) \rightarrow \mathcal{P}_{r}\Lambda^{l-1}(\mathbb{R}^{d}) \f$ */
       const Eigen::MatrixXd & get_reduced_Koszul_m1(size_t l /*!<Form degree*/, size_t d /*!<%Dimension*/) const {return _list_reduced_Koszul_m1[_cmp_ind(l,d)];}
 
     private:

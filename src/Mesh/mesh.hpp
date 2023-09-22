@@ -141,7 +141,7 @@ namespace Manicore {
           \tparam d %Dimension of the cell
           \return Matrix from \f$ \Lambda^k(\mathbb{R}^d) \f$ to \f$ \Lambda^{d-k}(\mathbb{R}^d) \f$ 
          */
-        template<size_t k,size_t d> Eigen::Matrix<double,Dimension::ExtDim(d-k,d),Dimension::ExtDim(k,d)>
+        template<size_t k,int d> Eigen::Matrix<double,Dimension::ExtDim(d-k,d),Dimension::ExtDim(k,d)>
           getHodge(size_t i_cell /*!< Index of the cell */, 
                    Eigen::Vector<double,d> const &x /*!< Location on the reference element of the cell*/) const; // Compute the Hodge star operator on the i_cell-th d-cell at x
 
@@ -208,7 +208,7 @@ namespace Manicore {
     /// @endcond
 
     template<size_t dimension>
-    template<size_t k,size_t d> Eigen::Matrix<double,Dimension::ExtDim(d-k,d),Dimension::ExtDim(k,d)>
+    template<size_t k,int d> Eigen::Matrix<double,Dimension::ExtDim(d-k,d),Dimension::ExtDim(k,d)>
     Mesh<dimension>::getHodge(size_t i_cell, Eigen::Vector<double,d> const &x) const 
     {
       auto const & F = get_cell_map<d>(i_cell);

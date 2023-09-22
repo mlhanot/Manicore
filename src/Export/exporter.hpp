@@ -41,9 +41,17 @@ namespace Manicore {
               );
 
       /// Write a csv file with the point-wise value of the discrete function
+      /**
+        By default, this use the identification between 0-forms and function, and between 1-forms and vector.
+        In 2D, there is an ambiguity between \f$1\f$ and \f$n-1\f$ forms. 
+        By default, this function will print an \f$1\f$-form, set star=true to reverse the behavior.
+
+        \remark The DDR_Spaces::potential() operator returns the Hodge star of the potential
+        */
       int save(size_t k /*!< Form degree */, 
                 std::function<Eigen::VectorXd(size_t iT)> Fu_h /*!< Return the discrete vector in \f$\mathcal{P}_r\Lambda^k(\mathbb{R}^d)\f$ in a given cell iT */,
-                const char *filename /*!< Name and location to write the data */) const;
+                const char *filename /*!< Name and location to write the data */,
+                bool star=false /*!<Apply the Hodge star before exporting an 1-form */) const;
       /// Write a csv file with the point-wise value of the contraction of the function with itself
       /**
         Compute \f$ u^i u_i \f$

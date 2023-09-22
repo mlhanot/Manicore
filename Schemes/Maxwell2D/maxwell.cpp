@@ -27,15 +27,24 @@ class SaveCSV {
   public:
     SaveCSV(MaxwellProblem const * maxwell, const char * outdir)
       : _maxwell(maxwell), 
-        _exporter(_maxwell->ddrcore().mesh(),_maxwell->ddrcore().degree(),15), 
+ //       _exporter(_maxwell->ddrcore().mesh(),_maxwell->ddrcore().degree(),15), 
+        _exporter(_maxwell->ddrcore().mesh(),_maxwell->ddrcore().degree(),3), 
         _outdir(outdir), _bad(false) {;}
     void save(int k, Eigen::Ref<const Eigen::VectorXd> const & u, const char* basename, int step) {
       if (_bad) return;
       std::string filename = _outdir + basename + "_" + std::to_string(step) + ".csv";
-      if (_exporter.save(2-k,
-            [&](size_t iT)->Eigen::VectorXd {
-              return _maxwell->ddrcore().potential(k,2,iT)*_maxwell->ddrcore().dofspace(k).restrict(2,iT,u);},
-            filename.c_str())) _bad = true;
+      if (k == 1) {
+        if (_exporter.save(2-k,
+              [&](size_t iT)->Eigen::VectorXd {
+              // ** = (-1)^{k(n-k)} = -1 for n = 2 and k = 1
+                return -1.*_maxwell->ddrcore().potential(k,2,iT)*_maxwell->ddrcore().dofspace(k).restrict(2,iT,u);},
+              filename.c_str(),true)) _bad = true;
+      } else {
+        if (_exporter.save(2-k,
+              [&](size_t iT)->Eigen::VectorXd {
+                return _maxwell->ddrcore().potential(k,2,iT)*_maxwell->ddrcore().dofspace(k).restrict(2,iT,u);},
+              filename.c_str())) _bad = true;
+      }
     }
     void saveNorm(int k, Eigen::Ref<const Eigen::VectorXd> const & u, const char* basename, int step) {
       if (_bad) return;
@@ -52,14 +61,21 @@ class SaveCSV {
     bool _bad;
 };
 
-const char *meshfile = "../meshes/test/58_pts.json";
-const char *mapfile = "meshes/test/libdisk_maps.so";
-constexpr bool use_threads = true;
-
+//const char *meshfile = "../meshes/test/58_pts.json";
+const char *mapfile = "meshes/sphere/libsphere_shared.so";
+std::vector<const char *> meshfiles{"../meshes/sphere/4_circle.json",
+                           "../meshes/sphere/6_circle.json",
+                           "../meshes/sphere/11_circle.json",
+                           "../meshes/sphere/21_circle.json",
+                           "../meshes/sphere/29_circle.json",
+                           "../meshes/sphere/51_circle.json"};
+                           
 int main(int argc, char *argv[]) {
   // Parse options
   int degree;
+  size_t meshNb;
   double dt, t0, tmax, tprint;
+  bool use_threads, printSources;
   std::string logfile, outdir;
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -69,8 +85,11 @@ int main(int argc, char *argv[]) {
     ("length,l", po::value<double>(&tmax)->default_value(2.*std::numbers::pi), "Simulation length")
     ("start", po::value<double>(&t0)->default_value(0.), "Starting time of the simulation")
     ("print,p", po::value<double>(&tprint)->default_value(1e-2), "Interval of simulation time between prints")
+    ("print-extra", po::bool_switch(), "Print all available fields")
     ("logfile,f", po::value<std::string>(), "File to write logs")
+    ("meshfile,m", po::value<size_t>(&meshNb)->default_value(2), "Index of the mesh in the sequence")
     ("outdir,o", po::value<std::string>(), "Directory in which output the fields data")
+    ("disable-threads", po::bool_switch(), "Disable multithreading")
 ;
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -80,11 +99,17 @@ int main(int argc, char *argv[]) {
     std::cout << desc << "\n";
     return 1;
   }
+  use_threads = not vm.count("disable-threads");
+  printSources = vm.count("print-extra");
+  if (meshNb >= meshfiles.size()) {
+    std::cout << "Meshfile number "<<meshNb<<" out of range. Please use a value less than "<<meshfiles.size()<<"\n";
+    return 1;
+  }
   if (vm.count("logfile")) {
     logfile = vm["logfile"].as<std::string>();
     std::cout<<"Using \""<<logfile<<"\" as output"<<std::endl;
   } else {
-    logfile = "maxwell_d" + std::to_string(degree) + ".log";
+    logfile = "maxwell_m" + std::to_string(meshNb) + "_d" + std::to_string(degree) + ".log";
     std::cout<<"No filename provided to output logs, defaulting to \""<<logfile<<"\""<<std::endl;
   }
   // Prepare logfile
@@ -98,7 +123,8 @@ int main(int argc, char *argv[]) {
   }
 
   // Build the problem
-  std::unique_ptr<Mesh<2>> mesh_ptr(Mesh_builder<2>::build(meshfile,mapfile));
+  std::cout<<"Building the geometrical data"<<std::endl;
+  std::unique_ptr<Mesh<2>> mesh_ptr(Mesh_builder<2>::build(meshfiles.at(meshNb),mapfile));
   NullStream os;
   MaxwellProblem maxwell(*mesh_ptr,degree,dt,use_threads,nullptr,os);
   std::shared_ptr<SaveCSV> saveCSV = nullptr; 
@@ -106,10 +132,11 @@ int main(int argc, char *argv[]) {
     saveCSV = std::make_shared<SaveCSV>(&maxwell,vm["outdir"].as<std::string>().c_str());
   }
   // Factorize the system
+  std::cout<<"Factorizing the system with "<<maxwell.dimensionSystem()<<" degrees of freedom"<<std::endl;
   maxwell.compute();
 
   // Select solution
-  std::unique_ptr<Solution> sol(new Solution1());
+  std::unique_ptr<Solution> sol(new Solution3());
   // Initial values 
   double t = t0;
   sol->_t = t;
@@ -122,7 +149,11 @@ int main(int argc, char *argv[]) {
   if (saveCSV) {
     saveCSV->save(2, uOld.B(), "B", 0);
     saveCSV->save(1, uOld.E(), "E", 0);
-    saveCSV->saveNorm(1, uOld.E(), "NormE", 0);
+    if (printSources) {
+      saveCSV->saveNorm(1, uOld.E(), "NormE", 0);
+      saveCSV->save(1, J_hOld, "J", 0);
+      saveCSV->save(0, maxwell.ddrcore().template interpolate<0>(std::bind_front(&Solution::rho,sol.get())), "rho", 0);
+    }
   }
   {
     double normE = maxwell.norm(uOld.E(),1);
@@ -166,7 +197,11 @@ int main(int argc, char *argv[]) {
       if (saveCSV) {
         saveCSV->save(2, uOld.B(), "B", acc);
         saveCSV->save(1, uOld.E(), "E", acc);
-        saveCSV->saveNorm(1, uOld.E(), "NormE", acc);
+        if (printSources) {
+          saveCSV->saveNorm(1, uOld.E(), "NormE", acc);
+          saveCSV->save(1, J_h, "J", acc);
+          saveCSV->save(0, rho_h, "rho", acc);
+        }
       }
     }
   }

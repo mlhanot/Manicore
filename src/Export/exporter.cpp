@@ -1,3 +1,20 @@
+/* 
+ * Copyright (c) 2023 Marien Hanot <marien-lorenzo.hanot@umontpellier.fr>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *  
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "exporter.hpp"
 
 #include "integral.hpp"
@@ -32,7 +49,8 @@ Exporter<dimension>::Exporter(Mesh<dimension> const * mesh,int r,int acc)
         auto const DJ = T.evaluate_DJ(0,chartX);
         _metricInv.push_back(DJ*mesh->metric_inv(mId,chartX)*DJ.transpose()); 
       }
-      _volume.push_back(mesh->volume_form(mId,chartX)*mesh->orientationTopCell(iT));
+      _volume.push_back(T.template evaluate_DI_p<dimension>(0,quadv.vector)[0]*
+              mesh->volume_form(mId,chartX)*mesh->orientationTopCell(iT));
       // Precompute the polynomial evaluations
       size_t dimP = Dimension::PolyDim(r,dimension);
       Eigen::VectorXd polyEval(dimP);
@@ -44,16 +62,13 @@ Exporter<dimension>::Exporter(Mesh<dimension> const * mesh,int r,int acc)
       _pushforward.push_back(mesh->get_3D_pushforward(mId,chartX)
                             *mesh->metric_inv(mId,chartX) 
                             *T.template evaluate_DJ_p<1>(0,chartX));
-      if constexpr (dimension > 2) {
-        // TODO Test this one
-        _pushforwardStar.push_back(_pushforward.back()*mesh->getHodge<dimension-1>(iT,quadv.vector));
-      }
+      _pushforwardStar.push_back(_pushforward.back()*mesh->template getHodge<dimension-1>(iT,quadv.vector));
     } // end quadv
   } // end iT
 }
 
 template<size_t dimension>
-int Exporter<dimension>::save(size_t k, std::function<Eigen::VectorXd(size_t iT)> Fu_h, const char *filename) const 
+int Exporter<dimension>::save(size_t k, std::function<Eigen::VectorXd(size_t iT)> Fu_h, const char *filename, bool star) const 
 {
   std::fstream fh{filename, fh.trunc | fh.out};
   if (!fh.is_open()){
@@ -62,7 +77,7 @@ int Exporter<dimension>::save(size_t k, std::function<Eigen::VectorXd(size_t iT)
   }
   if (Dimension::ExtDim(k,dimension) == 1) {
     fh << "X,Y,Z,Val\n";
-  } else if (k == 1) {
+  } else if (Dimension::ExtDim(k,dimension) == dimension) {
     fh << "X,Y,Z,ValX,ValY,ValZ\n";
   }
   size_t oldIT = -1;
@@ -80,7 +95,9 @@ int Exporter<dimension>::save(size_t k, std::function<Eigen::VectorXd(size_t iT)
     } else if (Dimension::ExtDim(k,dimension) == dimension) { // 1 or n-1 forms
       Eigen::Vector<double,dimension> evalP = 
         Eigen::KroneckerProduct(Eigen::Matrix<double,dimension,dimension>::Identity(), _polyEval[iLoc].transpose())*uT;
-      Eigen::Vector3d embP = (k == 1)? _pushforward[iLoc]*evalP : _pushforwardStar[iLoc]*evalP;
+      Eigen::Vector3d embP = (k == 1)? 
+        (star? _pushforwardStar[iLoc]*evalP : _pushforward[iLoc]*evalP) : 
+        _pushforwardStar[iLoc]*evalP;
       fh << x(0) <<"," << x(1) << "," << x(2) << ",";
       fh << embP(0) << "," << embP(1) << "," << embP(2) << "\n";
     } else {

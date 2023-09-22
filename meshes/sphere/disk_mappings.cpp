@@ -201,7 +201,7 @@ struct north_metric : public Manicore::ParametrizedMetricMap<2>
     double Y = x_in(1);
     double r2 = X*X + Y*Y;
     constexpr double R2 = 1.;
-    double tmp = (r2+R2)*(r2+R2)/(4.*R2);
+    double tmp = (r2+R2)*(r2+R2)/(4.*R2*R2);
     return Eigen::Matrix2d::Identity()*tmp;
   }
   Eigen::Matrix<double,2,2> metric(Eigen::Vector<double,2> const & x_in) const override final {
@@ -209,7 +209,7 @@ struct north_metric : public Manicore::ParametrizedMetricMap<2>
     double Y = x_in(1);
     double r2 = X*X + Y*Y;
     constexpr double R2 = 1.;
-    double tmp = 4.*R2/((r2+R2)*(r2+R2));
+    double tmp = 4.*R2*R2/((r2+R2)*(r2+R2));
     return Eigen::Matrix2d::Identity()*tmp;
   }
   double volume(Eigen::Vector<double,2> const & x_in) const override final {
@@ -217,7 +217,7 @@ struct north_metric : public Manicore::ParametrizedMetricMap<2>
     double Y = x_in(1);
     double r2 = X*X + Y*Y;
     constexpr double R2 = 1.;
-    return 4.*R2/((r2+R2)*(r2+R2));
+    return 4.*R2*R2/((r2+R2)*(r2+R2));
   }
 };
 struct south_metric : public Manicore::ParametrizedMetricMap<2>
@@ -228,7 +228,7 @@ struct south_metric : public Manicore::ParametrizedMetricMap<2>
     double Y = x_in(1);
     double r2 = X*X + Y*Y;
     constexpr double R2 = 1.;
-    double tmp = (r2+R2)*(r2+R2)/(4.*R2);
+    double tmp = (r2+R2)*(r2+R2)/(4.*R2*R2);
     return Eigen::Matrix2d::Identity()*tmp;
   }
   Eigen::Matrix<double,2,2> metric(Eigen::Vector<double,2> const & x_in) const override final {
@@ -236,7 +236,7 @@ struct south_metric : public Manicore::ParametrizedMetricMap<2>
     double Y = x_in(1);
     double r2 = X*X + Y*Y;
     constexpr double R2 = 1.;
-    double tmp = 4.*R2/((r2+R2)*(r2+R2));
+    double tmp = 4.*R2*R2/((r2+R2)*(r2+R2));
     return Eigen::Matrix2d::Identity()*tmp;
   }
   double volume(Eigen::Vector<double,2> const & x_in) const override final {
@@ -244,7 +244,7 @@ struct south_metric : public Manicore::ParametrizedMetricMap<2>
     double Y = x_in(1);
     double r2 = X*X + Y*Y;
     constexpr double R2 = 1.;
-    return 4.*R2/((r2+R2)*(r2+R2));
+    return 4.*R2*R2/((r2+R2)*(r2+R2));
   }
 };
 
