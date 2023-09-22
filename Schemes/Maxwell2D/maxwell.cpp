@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
   int degree;
   size_t meshNb;
   double dt, t0, tmax, tprint;
-  bool use_threads, printSources;
+  bool use_threads, printSources, computeError;
   std::string logfile, outdir;
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -89,6 +89,7 @@ int main(int argc, char *argv[]) {
     ("logfile,f", po::value<std::string>(), "File to write logs")
     ("meshfile,m", po::value<size_t>(&meshNb)->default_value(2), "Index of the mesh in the sequence")
     ("outdir,o", po::value<std::string>(), "Directory in which output the fields data")
+    ("exact", po::bool_switch(), "Compute the error against the exact solution")
     ("disable-threads", po::bool_switch(), "Disable multithreading")
 ;
   po::variables_map vm;
@@ -99,8 +100,10 @@ int main(int argc, char *argv[]) {
     std::cout << desc << "\n";
     return 1;
   }
+  // Set switches
   use_threads = not vm.count("disable-threads");
   printSources = vm.count("print-extra");
+  computeError = vm.count("exact");
   if (meshNb >= meshfiles.size()) {
     std::cout << "Meshfile number "<<meshNb<<" out of range. Please use a value less than "<<meshfiles.size()<<"\n";
     return 1;
@@ -121,6 +124,17 @@ int main(int argc, char *argv[]) {
   } else {
     std::cerr<<"Cannot open logfile, skipping"<<std::endl;
   }
+  std::fstream logErrFh;
+  if (computeError) {
+    logErrFh.open((logfile.substr(0,logfile.size()-4) + "_err.log"), logErrFh.trunc | logErrFh.out);
+    if (logErrFh.is_open()) {
+    logfh << std::setprecision(std::numeric_limits<double>::digits10+1);
+    logfh << "# Using dt = "<<dt<<" and degree "<<degree<<std::endl;
+    logfh << "# t\tE\tdE\tB"<<std::endl;
+    } else {
+      std::cerr<<"Cannot open logErrFile, skipping"<<std::endl;
+    }
+  }
 
   // Build the problem
   std::cout<<"Building the geometrical data"<<std::endl;
@@ -136,7 +150,7 @@ int main(int argc, char *argv[]) {
   maxwell.compute();
 
   // Select solution
-  std::unique_ptr<Solution> sol(new Solution3());
+  std::unique_ptr<Solution> sol(new Solution0());
   // Initial values 
   double t = t0;
   sol->_t = t;
@@ -163,6 +177,17 @@ int main(int argc, char *argv[]) {
     if (logfh.is_open()) {
       logfh <<t<<"\t"<<normE<<"\t"<<normdE<<"\t"<<normB<<"\t"<<0.<<"\t"<<normE*normE+normB*normB<<std::endl;
     }
+    if (computeError){
+      Eigen::VectorXd Eexact = maxwell.ddrcore().template interpolate<1>(std::bind_front(&Solution::E,sol.get()));
+      Eigen::VectorXd Bexact = maxwell.ddrcore().template interpolate<2>(std::bind_front(&Solution::B,sol.get()));
+      double errE = maxwell.norm(uOld.E() - Eexact,1);
+      double errdE = maxwell.normd(uOld.E() - Eexact,1);
+      double errB = maxwell.norm(uOld.B() - Bexact,2);
+      std::cout<<"errE: "<<errE<<" errdE: "<<errdE<<" errB: "<<errB<<std::endl;
+      if (logErrFh.is_open()) {
+        logErrFh <<t<<"\t"<<errE<<"\t"<<errdE<<"\t"<<errB<<std::endl;
+      }
+    }
   }
   // Declare containers
   MaxwellVector u_h(maxwell);
@@ -185,8 +210,17 @@ int main(int argc, char *argv[]) {
     double normE = maxwell.norm(u_h.E(),1);
     double normdE = maxwell.normd(u_h.E(),1);
     double normB = maxwell.norm(u_h.B(),2);
+    double errE, errdE, errB;
     if (logfh.is_open()) {
       logfh <<t<<"\t"<<normE<<"\t"<<normdE<<"\t"<<normB<<"\t"<<0.<<"\t"<<normE*normE+normB*normB<<std::endl;
+      if (computeError && logErrFh.is_open()) {
+        Eigen::VectorXd Eexact = maxwell.ddrcore().template interpolate<1>(std::bind_front(&Solution::E,sol.get()));
+        Eigen::VectorXd Bexact = maxwell.ddrcore().template interpolate<2>(std::bind_front(&Solution::B,sol.get()));
+        errE = maxwell.norm(uOld.E() - Eexact,1);
+        errdE = maxwell.normd(uOld.E() - Eexact,1);
+        errB = maxwell.norm(uOld.B() - Bexact,2);
+        logErrFh <<t<<"\t"<<errE<<"\t"<<errdE<<"\t"<<errB<<std::endl;
+      }
     }
     if (t - tprev > tprint) {
       tprev = t;
@@ -194,6 +228,9 @@ int main(int argc, char *argv[]) {
       std::cout<<"Time: "<<t<<"\n";
       std::cout<<"E+B: "<<normE*normE+normB*normB;
       std::cout<<" E: "<<normE<<" dE: "<<normdE<<" B: "<<normB<<" G: "<<normG<<std::endl;
+      if (computeError) {
+        std::cout<<"errE: "<<errE<<" errdE: "<<errdE<<" errB: "<<errB<<std::endl;
+      }
       if (saveCSV) {
         saveCSV->save(2, uOld.B(), "B", acc);
         saveCSV->save(1, uOld.E(), "E", acc);

@@ -82,7 +82,7 @@ LegendreGauss::LegendreGauss(size_t doe) : _doe(doe),
         sub_rule_21();
         break;
       default:
-        throw "Can't integrate edge to degree ";
+        throw std::runtime_error("Can't integrate edge to degree ");
         return;
     }
 }
@@ -689,14 +689,14 @@ void LegendreGauss::sub_rule_21() {
 size_t LegendreGauss::npts() { return _npts; }
 double LegendreGauss::wq(size_t i) {
     if (i >= _npts) {
-        throw "Trying to access quadrature point that is greater than number computed";
+        throw std::runtime_error("Trying to access quadrature point that is greater than number computed");
     }
     return _w[i];
 }
 
 double LegendreGauss::tq(size_t i) {
     if (i >= _npts) {
-        throw "Trying to access quadrature point that is greater than number computed";
+        throw std::runtime_error("Trying to access quadrature point that is greater than number computed");
     }
     return _t[i];
 }

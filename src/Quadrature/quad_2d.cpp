@@ -7,6 +7,7 @@
 #include "triangle_dunavant_rule.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 using namespace Manicore;
 
@@ -37,19 +38,19 @@ QuadRuleTriangle::~QuadRuleTriangle(){
 size_t QuadRuleTriangle::nq() { return _npts; }
 double QuadRuleTriangle::xq(size_t i) {
     if ((i * 2 + 1) >= _npts * 2) {
-        throw "QuadRuleTriangle: trying to access array element out of bounds";
+        throw std::runtime_error("QuadRuleTriangle: trying to access array element out of bounds");
     }
     return _xyphys[i * 2];
 }
 double QuadRuleTriangle::yq(size_t i) {
     if ((i * 2 + 1) >= _npts * 2) {
-        throw "QuadRuleTriangle: trying to access array element out of bounds";
+        throw std::runtime_error("QuadRuleTriangle: trying to access array element out of bounds");
     }
     return _xyphys[i * 2 + 1];
 }
 double QuadRuleTriangle::wq(size_t i) {
     if ((i) >= _npts) {
-        throw "QuadRuleTriangle: trying to access array element out of bounds";
+        throw std::runtime_error("QuadRuleTriangle: trying to access array element out of bounds");
     }
     return _w[i] * std::abs(area);
 }

@@ -163,9 +163,11 @@ struct Solution3 final : public Solution {
     double ct = std::cos(t_0), st = std::sin(t_0);
     double r2 = X*X + Y*Y;
     if (map_id == 0) {
-      return Eigen::Vector<double,1>{2.*(1. - (2.*X*st + (1. - r2)*ct)/(1. + r2))};
+      double val = 2.*(1. - (2.*X*st + (1. - r2)*ct)/(1. + r2));
+      return Eigen::Vector<double,1>{(val > 3.8)? val : 0.};
     } else {
-      return Eigen::Vector<double,1>{2.*(1. - (2.*X*st - (1. - r2)*ct)/(1. + r2))};
+      double val = 2.*(1. - (2.*X*st - (1. - r2)*ct)/(1. + r2));
+      return Eigen::Vector<double,1>{(val > 3.8)? val : 0.};
     }
   }
   Eigen::Vector<double,2> J (size_t map_id, const Eigen::Vector<double,2> &x) override 
