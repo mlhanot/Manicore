@@ -116,6 +116,10 @@ Index starts at 0.
 - Cells: Order of appearance in the json file. Index starts at 0.
 - Cell maps: Defined in the shared library. It is not associated to an internal index, but the code assumes that 0 is reserved for the flat map. Index starts at 1.
 
+An element is *flat* if its *Mappings* is `[0]` and it boundary is also flat.
+To implement more efficiently the flat elements, it is required that a flat element belongs to a single chart.
+If an element if flat in several charts, then a trivial mapping must be manually implemented.
+
 \subsection geodata Geometrical data
 
 The interface for the shared library is given [here](@ref map_interface.hpp). See also [here](@ref MeshFormat) for related functions.

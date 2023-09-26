@@ -1,6 +1,10 @@
 #include "maxwell.hpp"
 #include "mesh_builder.hpp"
+#ifdef MAXWELLTORUS
+#include "torus_ref.hpp"
+#else
 #include "sphere_ref.hpp"
+#endif
 #include "exporter.hpp"
 
 #include <numbers>
@@ -61,14 +65,25 @@ class SaveCSV {
     bool _bad;
 };
 
-//const char *meshfile = "../meshes/test/58_pts.json";
+#ifdef MAXWELLTORUS
+const char *mapfile = "meshes/torus/libtorus_shared.so";
+std::vector<const char *> meshfiles{"../meshes/torus/torus_5.json",
+                                    "../meshes/torus/torus_10.json",
+                                    "../meshes/torus/torus_15.json",
+                                    "../meshes/torus/torus_20.json",
+                                    "../meshes/torus/torus_25.json",
+                                    "../meshes/torus/torus_30.json",
+                                    "../meshes/torus/torus_35.json",
+                                    "../meshes/torus/torus_40.json"};
+#else
 const char *mapfile = "meshes/sphere/libsphere_shared.so";
 std::vector<const char *> meshfiles{"../meshes/sphere/4_circle.json",
-                           "../meshes/sphere/6_circle.json",
-                           "../meshes/sphere/11_circle.json",
-                           "../meshes/sphere/21_circle.json",
-                           "../meshes/sphere/29_circle.json",
-                           "../meshes/sphere/51_circle.json"};
+                                    "../meshes/sphere/6_circle.json",
+                                    "../meshes/sphere/11_circle.json",
+                                    "../meshes/sphere/21_circle.json",
+                                    "../meshes/sphere/29_circle.json",
+                                    "../meshes/sphere/51_circle.json"};
+#endif
                            
 int main(int argc, char *argv[]) {
   // Parse options

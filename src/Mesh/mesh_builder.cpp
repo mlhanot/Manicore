@@ -112,6 +112,7 @@ Mesh<dimension> * Mesh_builder<dimension>::build(const char * meshfile, const ch
     mesh_p->_geo1.reserve(dcells.size());
     for (size_t iT = 0; iT < dcells.size(); ++iT) {
       if (dcells[iT]["Mappings"].size() == 1 && dcells[iT]["Mappings"][0] == 0) { // Flat edge
+        assert(dcells[iT]["Map_ids"].size() == 1); // Belongs to a single map
         std::vector<size_t> const & vboundary = mesh_p->get_boundary(0,1,iT);
         std::vector<size_t> const & vboundary_relmap = mesh_p->get_relative_map(0,1,iT);
         assert(vboundary.size() == 2);
@@ -176,6 +177,7 @@ Mesh<dimension> * Mesh_builder<dimension>::build(const char * meshfile, const ch
       std::vector<size_t> const & c1boundary = mesh_p->get_boundary(d-1,d,iT);
       if (dcells[iT]["Mappings"].size() == 1 && dcells[iT]["Mappings"][0] == 0 
           && is_boundary_flat<dimension,d>(mesh_p,c1boundary)) { // Flat face
+        assert(dcells[iT]["Map_ids"].size() == 1); // Belongs to a single map
         std::vector<size_t> const & vboundary = mesh_p->get_boundary(0,d,iT);
         std::vector<size_t> const & vboundary_relmap = mesh_p->get_relative_map(0,d,iT);
         // Collect all vertices
