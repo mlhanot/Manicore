@@ -1,6 +1,5 @@
 #include "map_interface.hpp"
 
-
 struct edge_map : public Manicore::ParametrizedMap<2,1> 
 {
   Eigen::Vector<double,2> I(Eigen::Vector<double,1> const & t_v) const override final {
@@ -55,7 +54,6 @@ struct face_pullbacks : public Manicore::ParametrizedDerivedMap<2,2>
 };
 
 #ifdef EMBEDDING_3D
-// TODO Test this
 struct main_embedding : public Manicore::ParametrizedMap<3,2>
 {
   Eigen::Vector<double,3> I(Eigen::Vector<double,2> const & x_in) const override final {

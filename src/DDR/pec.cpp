@@ -54,6 +54,7 @@ PEC<dimension>::PEC(Mesh<dimension> const & mesh,int r, bool use_threads, std::a
   } else {
     dqr = *dqr_p;
   }
+  _listScales.resize(mesh.n_cells(dimension));
   ///------------------------------------------------------------------------------------------------------------------------------
   // Construct cells, evaluate quad and compute the gram matrix on every elements
   auto evaluate_masses = [this,&mesh,&dqr]<size_t d>(size_t start,size_t end)
@@ -61,6 +62,10 @@ PEC<dimension>::PEC(Mesh<dimension> const & mesh,int r, bool use_threads, std::a
     Integral<dimension,d> integral(&mesh);
     for (size_t i_l = start; i_l < end; ++ i_l) {
       _dCellList.template mass<d>()[i_l] = dCell_mass<dimension,d>(i_l,_r,integral.generate_quad(i_l,dqr[d-1]),integral);
+      if constexpr(d == dimension) { // fill size of each cell
+        double volume = _dCellList.template mass<d>()[i_l].masses[0](0,0);
+        _listScales[i_l] = std::pow(volume,1./d);
+      }
     }
   };
 
@@ -178,6 +183,25 @@ Eigen::MatrixXd PEC<dimension>::get_trace(size_t k, size_t d, size_t i_cell, siz
     } else {
       if (d == l) {
         return _dCellList.template traces<l>()[i_cell].traces[k][j_bd];
+      } else {
+        return fetch_trace.template operator()<l+1>(fetch_trace);
+      }
+    }
+  };
+  return fetch_trace.template operator()<1>(fetch_trace);
+}
+
+template<size_t dimension>
+Eigen::MatrixXd PEC<dimension>::get_starTrace(size_t k, size_t d, size_t i_cell, size_t j_bd) const
+{
+  auto fetch_trace = [&]<size_t l>(auto&& fetch_trace) {
+    assert(k < d && "form degree higher than boundary dimension");
+    if constexpr(l == dimension) {
+      assert(d == l);
+      return _dCellList.template traces<l>()[i_cell].starTraces[k][j_bd];
+    } else {
+      if (d == l) {
+        return _dCellList.template traces<l>()[i_cell].starTraces[k][j_bd];
       } else {
         return fetch_trace.template operator()<l+1>(fetch_trace);
       }

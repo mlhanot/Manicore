@@ -273,22 +273,23 @@ Eigen::MatrixXd DDR_Spaces<dimension>::computeL2Product(size_t k, size_t d,size_
   assert(d <= dimension && k <= d && i_cell < _mesh->n_cells(d) && "Access cell out of range");
   auto const & dofspace = _dofspace[k];
   // Top dimensional
-  Eigen::MatrixXd const & P = potential(k,d,i_cell);
-  Eigen::MatrixXd rv = P.transpose()*_ddr->get_mass(k,d,i_cell)*P;
+  Eigen::MatrixXd const & P = potential(k,d,i_cell); // $d-k$ valued
+  Eigen::MatrixXd rv = P.transpose()*_ddr->get_mass(d-k,d,i_cell)*P;
+  double hT = _ddr->getTopScaling(i_cell); 
   // Depth-first travel to reuse traces matrices
   auto _computeTracesL2 = [&]<size_t _d>(auto && _computeTracesL2, size_t i_bAbs, const Eigen::MatrixXd & trP) {
     // Contribution from this _d-cell
     Eigen::MatrixXd Ptr = dofspace.extendOperator(_d,d,i_bAbs,i_cell,potential(k,_d,i_bAbs));
     if constexpr (_d == 0) {
-      rv += (trP - Ptr).transpose()*(trP-Ptr); // The mass is trivial (and cannot be queried from PEC)
+      rv += std::pow(hT,dimension-_d)*(trP - Ptr).transpose()*(trP-Ptr); // The mass is trivial (and cannot be queried from PEC)
       return; // No more boundary
     } else {
-      rv += (trP - Ptr).transpose()*_ddr->get_mass(k,_d,i_bAbs)*(trP-Ptr);
+      rv += std::pow(hT,dimension-_d)*(trP - Ptr).transpose()*_ddr->get_mass(_d-k,_d,i_bAbs)*(trP-Ptr);
       // Contribution from its boundary
       if (_d <= k) return; // dimension of boundary lower than form degree, stop here
       auto const & boundary = _mesh->get_boundary(_d-1,_d,i_bAbs);
       for (size_t i_bb = 0; i_bb < boundary.size(); ++i_bb) {
-        Eigen::MatrixXd trPb = _ddr->get_trace(k,_d,i_bAbs,i_bb)*trP;
+        Eigen::MatrixXd trPb = _ddr->get_starTrace(k,_d,i_bAbs,i_bb)*trP;
         _computeTracesL2.template operator()<_d-1>(_computeTracesL2, boundary[i_bb], trPb);
       }
     }
@@ -306,7 +307,7 @@ Eigen::MatrixXd DDR_Spaces<dimension>::computeL2Product(size_t k, size_t d,size_
       } else if (_d == d) { // Initiate for all boundary
         auto const & boundary = _mesh->get_boundary(_d-1,_d,i_cell);
         for (size_t i_b = 0; i_b < boundary.size(); ++i_b) {
-          Eigen::MatrixXd trP = _ddr->get_trace(k,_d,i_cell,i_b)*P;
+          Eigen::MatrixXd trP = _ddr->get_starTrace(k,_d,i_cell,i_b)*P; // P is $_d-k$ valued, and trP $_d-1-k$
           _computeTracesL2.template operator()<_d-1>(_computeTracesL2, boundary[i_b], trP);
         }
       }
@@ -314,6 +315,7 @@ Eigen::MatrixXd DDR_Spaces<dimension>::computeL2Product(size_t k, size_t d,size_
   };
   // Contribution from boundary element
   _initiateTracesL2.template operator()<dimension>(_initiateTracesL2);
+
   return rv;
 }
 

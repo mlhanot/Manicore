@@ -61,12 +61,17 @@ dCell_traces<dimension,d>::dCell_traces(size_t i_cell, int r, int dqr,
     auto compute_traces = [&]<size_t l>(auto&& compute_traces)
     {
       Eigen::MatrixXd M_tr = Eigen::MatrixXd::Zero(Dimension::PLDim(r,l,d-1),Dimension::PLDim(r,l,d));
+      Eigen::MatrixXd starM_tr = Eigen::MatrixXd::Zero(Dimension::PLDim(r,d-1-l,d-1),Dimension::PLDim(r,d-l,d));
       auto const ext_quad = integral.template evaluate_exterior_quad_tr<l>(i_cell,i_bd,quad);
+      auto const ext_quadStar = integral.template evaluate_exterior_quad_star_tr<l>(i_cell,i_bd,quad);
       for (size_t iqn = 0; iqn < quad.size(); ++iqn) {
         M_tr += Eigen::KroneckerProduct(ext_quad[iqn],scalar_b_quad.row(iqn).transpose()*scalar_quad.row(iqn))
                      *volume_b_quad[iqn]*quad[iqn].w;
+        starM_tr += Eigen::KroneckerProduct(ext_quadStar[iqn],scalar_b_quad.row(iqn).transpose()*scalar_quad.row(iqn))
+              *volume_b_quad[iqn]*quad[iqn].w;
       }
       traces[l].emplace_back(b_masses[boundary[i_bd]].masses[l].ldlt().solve(M_tr));
+      starTraces[l].emplace_back(b_masses[boundary[i_bd]].masses[d-1-l].ldlt().solve(starM_tr));
       if constexpr(l < d-1) compute_traces.template operator()<l+1>(compute_traces);
     };
     compute_traces.template operator()<0>(compute_traces);
@@ -82,11 +87,16 @@ dCell_traces<dimension,1>::dCell_traces(size_t i_cell, int r, const Mesh<dimensi
   for (size_t i_bd = 0; i_bd < boundary.size(); ++i_bd){
     size_t bd_map = mesh->get_relative_map(d-1,d,i_cell)[i_bd];
     auto const & V = mesh->template get_cell_map<d-1>(boundary[i_bd]);
+    auto const Jx = T.evaluate_J(0,V.coord(bd_map));
     Eigen::MatrixXd M = Eigen::MatrixXd::Zero(1,Dimension::PolyDim(r,1));
+    Eigen::MatrixXd starM = Eigen::MatrixXd::Zero(1,Dimension::PolyDim(r,1));
     for (size_t i_basis = 0; i_basis<Dimension::PolyDim(r,1); ++i_basis) {
       M(i_basis) = T.evaluate_poly_pullback(0,V.coord(bd_map),i_basis,r);
+      starM(i_basis) = T.evaluate_poly_pullback(0,V.coord(bd_map),i_basis,r)
+        *mesh->template getHodge<d-0,d>(i_cell,Jx)(0,0); // 1x1 matrix
     }
     traces[0].emplace_back(M);
+    starTraces[0].emplace_back(starM);
   }
 } 
 /// @endcond

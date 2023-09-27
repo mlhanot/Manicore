@@ -13,6 +13,8 @@ struct Solution {
   virtual ~Solution(){;};
 };
 
+// Notice: This solution is not smooth, B is continuous but not differentiable on two lines
+// B is the Euclidean distance to (t,1/2), and is not differentiable along y at (y = 0), and along x at (x = t + 1/2).
 struct Solution0 final : public Solution {
   Eigen::Vector<double,1> B (size_t map_id, const Eigen::Vector<double,2> &x) override 
   {

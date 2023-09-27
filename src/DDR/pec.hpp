@@ -41,13 +41,18 @@ namespace Manicore {
                  std::ostream & output = std::cout /*!< Output stream for status messages. */
                  );
 
-
+      /// Return the characteristic scale \f$h_T\f$ of a top dimensional cell \f$T\f$
+      /** Computed as the \f$n\f$th root of the volume of the cell */
+      double getTopScaling(size_t i_cell /*!< Cell index */) const {return _listScales[i_cell];}
       /// Return the mass matrix for the k-forms on the i-th d-cell in the basis PL(r,k,d)
       /** \return Mass matrix in the basis \f$ \mathcal{P}_r\Lambda^k(\mathbb{R}^d)\f$ */
       Eigen::MatrixXd get_mass(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */) const; 
       /// Return the trace for the k-forms on the i-th d-cell onto its j-th (d-1)-neighbour
       /** \return Trace matrix in the basis \f$ \mathcal{P}_r\Lambda^k(\mathbb{R}^d) \rightarrow \mathcal{P}_r\Lambda^k(\mathbb{R}^{d-1}) \f$ */
       Eigen::MatrixXd get_trace(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */, size_t j_bd /*!< Relative index of the boundary element (e.g. between 0 and 2 for a triangle)*/) const; 
+      /// Return the Hodge dual of the trace for the Hodge dual of \f$(d-k)\f$-forms on the i-th d-cell onto its j-th (d-1)-neighbour
+      /** \return The matrix of the operator \f$\star \text{tr} \star^{-1}\f$ in the basis \f$ \mathcal{P}_r\Lambda^{d-k}(\mathbb{R}^d) \rightarrow \mathcal{P}_r\Lambda^{d-1-k}(\mathbb{R}^{d-1}) \f$ */
+      Eigen::MatrixXd get_starTrace(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */, size_t j_bd /*!< Relative index of the boundary element (e.g. between 0 and 2 for a triangle)*/) const; 
 
       // Getter for the generic operators matrices
       /// Return the image of the differential operator
@@ -77,7 +82,7 @@ namespace Manicore {
                                    _list_diff_as_degr, // Image of dPL(r,l,d) inside PL(r,l+1,d)
                                    _list_trimmed, // Image of PLtrimmed(r,l,d)
                                    _list_reduced_Koszul_m1; // Image of kPL(r-1,l,d)
-
+      std::vector<double> _listScales;
       template<size_t _dimension,size_t _d>
       class dCellVariableList {
         private:

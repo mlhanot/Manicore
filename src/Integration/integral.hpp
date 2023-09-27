@@ -92,6 +92,17 @@ namespace Manicore {
                                         size_t bd_rel_index /*!< Relative index of the boundary */, 
                                         QuadratureRule<d-1> const & quad /*!< Quadrature rule on the boundary */) const requires(d > 1);
 
+      /// Evaluate the pullback by I of the \f$L^2\f$ product on the exterior algebra of the exterior algebra on the reference element composed with the trace on the right and the Hodge star on both side.
+      /** Compute the matrix of \f$ I_F^* (\langle \cdot , \star I_F^* J_T^* \star^{-1} \cdot \rangle_{g}) \f$.
+        Expect a \f$d-l\f$ form on the right and a \f$d-1-l\f$ form on the left.
+        \tparam l Hodge dual of the form degree
+        */
+      template<size_t l>
+      std::vector<Eigen::Matrix<double,Dimension::ExtDim(l,d-1),Dimension::ExtDim(l,d)>> 
+              evaluate_exterior_quad_star_tr(size_t i_cell /*!< Cell index */,
+                                        size_t bd_rel_index /*!< Relative index of the boundary */, 
+                                        QuadratureRule<d-1> const & quad /*!< Quadrature rule on the boundary */) const requires(d > 1);
+
       /// Access the mesh associated with this object
       const Mesh<dimension>* mesh() const {return _mesh;}
     private:
@@ -210,6 +221,36 @@ namespace Manicore {
       auto const JpT = T.template evaluate_DJ_p<l>(0,Ix);
       Eigen::Matrix<double,d-1,d-1> invIpG = (DIF.transpose()*_mesh->metric(_mesh->get_map_ids(d,i_cell)[0],Ix)*DIF).inverse();
       rv.emplace_back(Compute_ExtGram<l>::compute(invIpG)*IpF*JpT);
+    }
+
+    return rv;
+  }
+
+  template<size_t dimension,size_t d> requires(d > 0 && d <= dimension)
+  template<size_t l>
+  std::vector<Eigen::Matrix<double,Dimension::ExtDim(l,d-1),Dimension::ExtDim(l,d)>> Integral<dimension,d>::evaluate_exterior_quad_star_tr(size_t i_cell,size_t bd_rel_index, QuadratureRule<d-1> const & quad) const requires(d > 1)
+  {
+    auto const & T = _mesh->template get_cell_map<d>(i_cell);
+    auto const & F = _mesh->template get_cell_map<d-1>(_mesh->get_boundary(d-1,d,i_cell)[bd_rel_index]);
+    size_t bd_map = _mesh->get_relative_map(d-1,d,i_cell)[bd_rel_index];
+
+    const size_t nbp = quad.size();
+    std::vector<Eigen::Matrix<double,Dimension::ExtDim(l,d-1),Dimension::ExtDim(l,d)>> rv;
+    rv.reserve(nbp);
+
+    for (size_t iqr = 0; iqr < nbp; ++iqr) {
+      auto const x = quad[iqr].vector;
+      auto const Ix = F.evaluate_I(bd_map,x);
+      auto const JIx = T.evaluate_J(0,Ix);
+      auto const DIF = F.evaluate_DI(bd_map,x);
+      Eigen::Matrix<double,d-1,d-1> invIpG = (DIF.transpose()*_mesh->metric(_mesh->get_map_ids(d,i_cell)[0],Ix)*DIF).inverse();
+      auto const IpF = F.template evaluate_DI_p<l>(bd_map,x);
+      auto const JpT = T.template evaluate_DJ_p<l>(0,Ix);
+      Eigen::Matrix<double,Dimension::ExtDim(l,d),Dimension::ExtDim(d-l,d)> 
+        starR = _mesh->template getHodge<d-l,d>(i_cell,JIx)*(((l*(d-l))%2)? -1. : 1.);
+      Eigen::Matrix<double,Dimension::ExtDim(d-1-l,d-1),Dimension::ExtDim(l,d-1)> 
+        starL = _mesh->template getHodge<l,d-1>(_mesh->get_boundary(d-1,d,i_cell)[bd_rel_index],x);
+      rv.emplace_back(Compute_ExtGram<d-1-l>::compute(invIpG)*starL*IpF*JpT*starR);
     }
 
     return rv;

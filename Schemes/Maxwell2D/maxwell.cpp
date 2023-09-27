@@ -31,7 +31,6 @@ class SaveCSV {
   public:
     SaveCSV(MaxwellProblem const * maxwell, const char * outdir)
       : _maxwell(maxwell), 
- //       _exporter(_maxwell->ddrcore().mesh(),_maxwell->ddrcore().degree(),15), 
         _exporter(_maxwell->ddrcore().mesh(),_maxwell->ddrcore().degree(),3), 
         _outdir(outdir), _bad(false) {;}
     void save(int k, Eigen::Ref<const Eigen::VectorXd> const & u, const char* basename, int step) {
@@ -66,6 +65,7 @@ class SaveCSV {
 };
 
 #ifdef MAXWELLTORUS
+//const char *mapfile = "meshes/torus/libtorus_3DEmbedding_shared.so";
 const char *mapfile = "meshes/torus/libtorus_shared.so";
 std::vector<const char *> meshfiles{"../meshes/torus/torus_5.json",
                                     "../meshes/torus/torus_10.json",
@@ -143,9 +143,9 @@ int main(int argc, char *argv[]) {
   if (computeError) {
     logErrFh.open((logfile.substr(0,logfile.size()-4) + "_err.log"), logErrFh.trunc | logErrFh.out);
     if (logErrFh.is_open()) {
-    logfh << std::setprecision(std::numeric_limits<double>::digits10+1);
-    logfh << "# Using dt = "<<dt<<" and degree "<<degree<<std::endl;
-    logfh << "# t\tE\tdE\tB"<<std::endl;
+    logErrFh << std::setprecision(std::numeric_limits<double>::digits10+1);
+    logErrFh << "# Using dt = "<<dt<<" and degree "<<degree<<std::endl;
+    logErrFh << "# t\tE\tdE\tB"<<std::endl;
     } else {
       std::cerr<<"Cannot open logErrFile, skipping"<<std::endl;
     }

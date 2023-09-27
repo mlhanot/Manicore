@@ -41,10 +41,13 @@ namespace Manicore {
       // The array index is the form degree (0 to d-1), and the vector index is the boundary
       /// Trace matrices for all form degree and all boundary cell 
       /** traces[k][i_b] is the trace for a k-form on the i_b-boundary cell, using relative index 
+
+      starTraces[k][i_b] is \f$ \star \text{tr} \star^{-1} \f$ of a \f$d-k\f$-form on the i_b-boundary cell, using relative index 
         
         The trace of d-form is not included. The array uses the global dimension to give an uniform interface, however only the first d elements are used.
        */
       std::array<std::vector<Eigen::MatrixXd>,dimension> traces;
+      std::array<std::vector<Eigen::MatrixXd>,dimension> starTraces; // TODO: only used for the stabilization term in the L2-product, check if this is really necessary
   };
   /// Specialization for edges
   template<size_t dimension> 
@@ -57,9 +60,12 @@ namespace Manicore {
       /// Trace matrices for all form degree and all boundary cell 
       /** traces[k][i_b] is the trace for a k-form on the i_b-th vertex, using relative index 
         
+      starTraces[k][i_b] is \f$ \star \text{tr} \star^{-1} \f$ of a \f$d-k\f$-form on the i_b-boundary cell, using relative index 
+
         Only traces[0] is used.
        */
       std::array<std::vector<Eigen::MatrixXd>,dimension> traces;
+      std::array<std::vector<Eigen::MatrixXd>,dimension> starTraces;
   };
   ///@}
 }
