@@ -269,7 +269,8 @@ Eigen::MatrixXd DDR_Spaces<dimension>::compose_diff(size_t k,size_t d,size_t i_c
 }
 
 template<size_t dimension>
-Eigen::MatrixXd DDR_Spaces<dimension>::computeL2Product(size_t k, size_t d,size_t i_cell) const {
+Eigen::MatrixXd DDR_Spaces<dimension>::computeL2Product(size_t k,size_t i_cell) const {
+  const size_t d = dimension;
   assert(d <= dimension && k <= d && i_cell < _mesh->n_cells(d) && "Access cell out of range");
   auto const & dofspace = _dofspace[k];
   // Top dimensional

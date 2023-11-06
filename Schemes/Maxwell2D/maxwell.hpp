@@ -272,9 +272,9 @@ namespace Manicore {
     _ALoc22.resize(nb_cell);
     std::function<void(size_t start, size_t end)> assemble_local = [&](size_t start, size_t end)->void {
       for (size_t iT = start; iT < end; iT++) {
-        Eigen::MatrixXd loc00 = _ddrcore.computeL2Product(0,2,iT);
-        Eigen::MatrixXd loc11 = _ddrcore.computeL2Product(1,2,iT);
-        Eigen::MatrixXd loc22 = _ddrcore.computeL2Product(2,2,iT);
+        Eigen::MatrixXd loc00 = _ddrcore.computeL2Product(0,iT);
+        Eigen::MatrixXd loc11 = _ddrcore.computeL2Product(1,iT);
+        Eigen::MatrixXd loc22 = _ddrcore.computeL2Product(2,iT);
         Eigen::MatrixXd loc0h = loc00*_ddrcore.dofspace(0).restrict(2,iT,_interpOne);
         Eigen::MatrixXd loc01 = _ddrcore.compose_diff(0,2,iT).transpose()*loc11;
         Eigen::MatrixXd loc12 = _ddrcore.compose_diff(1,2,iT).transpose()*loc22;

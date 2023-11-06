@@ -75,9 +75,9 @@ namespace Manicore {
 
       /// Compute the local \f$L^2\f$ product (including the cell boundary)
       /** The contribution on the cell is \f$\int_f \langle P^k , P^k \rangle \text{vol}_f \f$.
-        The contribution from a cell \f$f' \in \partial f \f$ of the boundary is \f$\int_f \langle \text{tr}_{f'} P^k_f - P^k_{f'} , \text{tr}_{f'} P^k_f - P^k_{f'} \rangle \text{vol}_{f'} \f$.
+        The contribution from a cell \f$f' \in \partial f \f$ of the boundary is \f$\int_f \langle \text{tr}_{f'} P^k_f - P^k_{f'} , \text{tr}_{f'} P^k_f - P^k_{f'} \rangle \text{vol}_{f'} \f$ multiplied by a scaling factor.
         */
-      Eigen::MatrixXd computeL2Product(size_t k /*!<Form degree*/, size_t d /*!< Cell dimension */,size_t i_cell /*!< Cell index */) const;
+      Eigen::MatrixXd computeL2Product(size_t k /*!<Form degree*/,size_t i_cell /*!< Cell index */) const;
 
     private:
       struct DDR_Operators { // one for each form degree k
