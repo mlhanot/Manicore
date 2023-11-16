@@ -42,14 +42,24 @@ namespace Manicore {
                      std::array<int,2> const* dqr = nullptr /*!< Degree of quadrature used to generate the mass matrices. It cannot be exact for generic metric and default to a pretty high degree. Use a lower degree if the metric and cells are almost flat. */,
                      std::ostream &output = std::cout /*!< Output stream for status messages. */);
 
+      /// Return the number of unknowns attached to the space of harmonic 0 forms
+#ifdef THREEFIELDS
+      size_t dimensionH() const {return 1;}
+#else
+      size_t dimensionH() const {return 0;}
+#endif
       /// Return the number of unknowns attached to the space of 0 forms
+#ifdef THREEFIELDS
       size_t dimensionG() const {return _ddrcore.dofspace(0).dimensionMesh();}
+#else
+      size_t dimensionG() const {return 0;}
+#endif
       /// Return the number of unknowns attached to the space of 1 forms
       size_t dimensionE() const {return _ddrcore.dofspace(1).dimensionMesh();}
       /// Return the number of unknowns attached to the space of 2 forms
       size_t dimensionB() const {return _ddrcore.dofspace(2).dimensionMesh();}
       /// Return the total number of unknowns
-      size_t dimensionSystem() const {return 1 + dimensionG() + dimensionE() + dimensionB();}
+      size_t dimensionSystem() const {return dimensionH() + dimensionG() + dimensionE() + dimensionB();}
 
       /// Return the associated DDR_Spaces
       DDR_Spaces<2> const & ddrcore() const {return _ddrcore;}
@@ -112,7 +122,7 @@ namespace Manicore {
   struct MaxwellVector {
     MaxwellVector(MaxwellProblem const & maxwell /*!< Associated maxwell problem */)
       : u(maxwell.dimensionSystem()), sizeG(maxwell.dimensionG()), sizeE(maxwell.dimensionE()), sizeB(maxwell.dimensionB()),
-      offsetG(1), offsetE(offsetG + sizeG), offsetB(offsetE + sizeE) {}
+      offsetG(maxwell.dimensionH()), offsetE(offsetG + sizeG), offsetB(offsetE + sizeE) {}
     /// Copy another MaxwellVector
     MaxwellVector& operator =(const MaxwellVector& other) {
       u = other.u;
@@ -126,7 +136,7 @@ namespace Manicore {
     /// Return the harmonic part
     Eigen::VectorBlock<Eigen::VectorXd> h() 
     {
-      return u.head(1);
+      return u.head(offsetG);
     }
     /// Return the ghost part
     Eigen::VectorBlock<Eigen::VectorXd> G()
@@ -163,7 +173,7 @@ namespace Manicore {
   void MaxwellProblem::assembleLocalContribution(Eigen::Ref<const Eigen::MatrixXd> const & A, size_t iT, size_t kL, size_t kR,
       std::forward_list<Eigen::Triplet<double>> * triplets) const
   {
-    size_t gOffsetL = 1, gOffsetR = 1;
+    size_t gOffsetL = dimensionH(), gOffsetR = dimensionH();
     // Initialise the global offsets
     switch(kL) {
       case 2:
@@ -209,7 +219,7 @@ namespace Manicore {
   void MaxwellProblem::assembleLocalContributionH(Eigen::Ref<const Eigen::MatrixXd> const & A, size_t iT, size_t k, std::forward_list<Eigen::Triplet<double>> * triplets) const
   {
     assert(A.cols() == 1 && "Expected only 1 harmonic form");
-    size_t gOffset = 1;
+    size_t gOffset = dimensionH();
     // Initialise the global offsets
     switch(k) {
       case 2:
@@ -236,7 +246,7 @@ namespace Manicore {
   
   void MaxwellProblem::assembleLocalContribution(Eigen::Ref<const Eigen::VectorXd> const & R, size_t iT, size_t k)
   {
-    size_t gOffset = 1;
+    size_t gOffset = dimensionH();
     // Initialise the global offsets
     switch(k) {
       case 2:
@@ -264,24 +274,36 @@ namespace Manicore {
   void MaxwellProblem::assembleSystem() 
   {
     const size_t nb_cell = _ddrcore.mesh()->n_cells(2);
+#ifdef THREEFIELDS
     std::vector<Eigen::MatrixXd> ALoc0h(nb_cell);
     std::vector<Eigen::MatrixXd> ALoc01(nb_cell);
+#endif
     std::vector<Eigen::MatrixXd> ALoc12(nb_cell);
+#ifdef THREEFIELDS
     _ALoc00.resize(nb_cell);
+#endif
     _ALoc11.resize(nb_cell);
     _ALoc22.resize(nb_cell);
     std::function<void(size_t start, size_t end)> assemble_local = [&](size_t start, size_t end)->void {
       for (size_t iT = start; iT < end; iT++) {
+#ifdef THREEFIELDS
         Eigen::MatrixXd loc00 = _ddrcore.computeL2Product(0,iT);
+#endif
         Eigen::MatrixXd loc11 = _ddrcore.computeL2Product(1,iT);
         Eigen::MatrixXd loc22 = _ddrcore.computeL2Product(2,iT);
+#ifdef THREEFIELDS
         Eigen::MatrixXd loc0h = loc00*_ddrcore.dofspace(0).restrict(2,iT,_interpOne);
         Eigen::MatrixXd loc01 = _ddrcore.compose_diff(0,2,iT).transpose()*loc11;
+#endif
         Eigen::MatrixXd loc12 = _ddrcore.compose_diff(1,2,iT).transpose()*loc22;
+#ifdef THREEFIELDS
         ALoc0h[iT] = loc0h;
         ALoc01[iT] = loc01;
+#endif
         ALoc12[iT] = loc12;
+#ifdef THREEFIELDS
         _ALoc00[iT] = loc00;
+#endif
         _ALoc11[iT] = loc11;
         _ALoc22[iT] = loc22;
       }
@@ -292,9 +314,11 @@ namespace Manicore {
 
     auto batch_local_assembly = [&](size_t start, size_t end, std::forward_list<Eigen::Triplet<double>> * triplets)->void {
       for (size_t iT = start; iT < end; iT++) {
+#ifdef THREEFIELDS
         assembleLocalContributionH(ALoc0h[iT],iT,0,triplets);
         assembleLocalContribution(ALoc01[iT],iT,0,1,triplets); // Constraint <E,dv0>
         assembleLocalContribution(ALoc01[iT].transpose(),iT,1,0,triplets); // Constraint <dA,v1>
+#endif
         assembleLocalContribution(0.5*_dt*ALoc12[iT],iT,1,2,triplets); // <dE,v2>
         assembleLocalContribution(0.5*_dt*ALoc12[iT].transpose(),iT,2,1,triplets); // <B,dv1>
         assembleLocalContribution(-1.*_ALoc11[iT],iT,1,1,triplets); // -<E,v1>
@@ -312,10 +336,12 @@ namespace Manicore {
     auto batch_local_assembly = [&](size_t start,size_t end)->void {
       for (size_t iT = start; iT < end; ++iT) {
         Eigen::VectorXd loc;
+#ifdef THREEFIELDS
         // 0 forms
         assert(rho.size() == dimensionG() && "Incorrect size of rho");
         loc = -_ALoc00[iT]*_ddrcore.dofspace(0).restrict(2,iT,rho);
         assembleLocalContribution(loc,iT,0);
+#endif
         // 1 forms
         assert(J.size() == dimensionE() && "Incorrect size of J");
         assert(EOld.size() == dimensionE() && "Incorrect size of EOld");
@@ -392,9 +418,11 @@ namespace Manicore {
         Eigen::VectorXd locE = _ddrcore.dofspace(k).restrict(2,iT,E); 
         Eigen::MatrixXd matL2;
         switch(k) {
+#ifdef THREEFIELDS
           case 0:
             matL2 = _ALoc00[iT];
             break;
+#endif
           case 1:
             matL2 = _ALoc11[iT];
             break;
@@ -427,9 +455,11 @@ namespace Manicore {
         Eigen::VectorXd locE = _ddrcore.compose_diff(k,2,iT)*_ddrcore.dofspace(k).restrict(2,iT,E);
         Eigen::MatrixXd matL2;
         switch(k) {
+#ifdef THREEFIELDS
           case 0:
             matL2 = _ALoc11[iT];
             break;
+#endif
           case 1:
             matL2 = _ALoc22[iT];
             break;

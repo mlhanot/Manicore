@@ -1,5 +1,6 @@
 #include "maxwell.hpp"
 #include "mesh_builder.hpp"
+
 #ifdef MAXWELLTORUS
 #include "torus_ref.hpp"
 #else
@@ -102,8 +103,9 @@ int main(int argc, char *argv[]) {
     ("print,p", po::value<double>(&tprint)->default_value(1e-2), "Interval of simulation time between prints")
     ("print-extra", po::bool_switch(), "Print all available fields")
     ("logfile,f", po::value<std::string>(), "File to write logs")
+    ("logfile-prefix", po::bool_switch(), "Use logfile as the prefix and append to automatic name")
     ("meshfile,m", po::value<size_t>(&meshNb)->default_value(2), "Index of the mesh in the sequence")
-    ("outdir,o", po::value<std::string>(), "Directory in which output the fields data")
+    ("outdir,o", po::value<std::string>(), "Directory in which output the fields data. If unset (default), no field data will be written")
     ("exact", po::bool_switch(), "Compute the error against the exact solution")
     ("disable-threads", po::bool_switch(), "Disable multithreading")
 ;
@@ -123,18 +125,21 @@ int main(int argc, char *argv[]) {
     std::cout << "Meshfile number "<<meshNb<<" out of range. Please use a value less than "<<meshfiles.size()<<"\n";
     return 1;
   }
+  logfile = "maxwell_m" + std::to_string(meshNb) + "_d" + std::to_string(degree) + ".log";
   if (vm.count("logfile")) {
-    logfile = vm["logfile"].as<std::string>();
-    std::cout<<"Using \""<<logfile<<"\" as output"<<std::endl;
-  } else {
-    logfile = "maxwell_m" + std::to_string(meshNb) + "_d" + std::to_string(degree) + ".log";
-    std::cout<<"No filename provided to output logs, defaulting to \""<<logfile<<"\""<<std::endl;
+    if (vm.count("logfile-prefix")) {
+      logfile = vm["logfile"].as<std::string>() + logfile;
+    } else {
+      logfile = vm["logfile"].as<std::string>();
+    }
   }
+  std::cout<<"Using \""<<logfile<<"\" as output"<<std::endl;
   // Prepare logfile
   std::fstream logfh{logfile, logfh.trunc | logfh.out};
   if (logfh.is_open()) {
     logfh << std::setprecision(std::numeric_limits<double>::digits10+1);
     logfh << "# Using dt = "<<dt<<" and degree "<<degree<<std::endl;
+    logfh << "# Using the meshfile: "<<meshfiles.at(meshNb)<<std::endl;
     logfh << "# t\tE\tdE\tB\tG\tE^2+B^2"<<std::endl;
   } else {
     std::cerr<<"Cannot open logfile, skipping"<<std::endl;
@@ -145,6 +150,7 @@ int main(int argc, char *argv[]) {
     if (logErrFh.is_open()) {
     logErrFh << std::setprecision(std::numeric_limits<double>::digits10+1);
     logErrFh << "# Using dt = "<<dt<<" and degree "<<degree<<std::endl;
+    logErrFh << "# Using the meshfile: "<<meshfiles.at(meshNb)<<std::endl;
     logErrFh << "# t\tE\tdE\tB"<<std::endl;
     } else {
       std::cerr<<"Cannot open logErrFile, skipping"<<std::endl;
@@ -213,7 +219,11 @@ int main(int argc, char *argv[]) {
   while(t < tmax) {
     t += dt;
     sol->_t = t;
+#ifdef THREEFIELDS
     Eigen::VectorXd rho_h = maxwell.ddrcore().template interpolate<0>(std::bind_front(&Solution::rho,sol.get()));
+#else
+    Eigen::VectorXd rho_h;
+#endif
     Eigen::VectorXd J_h = maxwell.ddrcore().template interpolate<1>(std::bind_front(&Solution::J,sol.get()));
     maxwell.assembleRHS(rho_h,0.5*(J_h + J_hOld),uOld.E(),uOld.B()); // CN
     u_h = maxwell.solve();
@@ -221,7 +231,11 @@ int main(int argc, char *argv[]) {
     uOld = u_h;
     J_hOld = J_h;
     // Process results
+#ifdef THREEFIELDS
     double normG = maxwell.norm(u_h.G(),0);
+#else
+    double normG = 0;
+#endif
     double normE = maxwell.norm(u_h.E(),1);
     double normdE = maxwell.normd(u_h.E(),1);
     double normB = maxwell.norm(u_h.B(),2);
@@ -252,7 +266,9 @@ int main(int argc, char *argv[]) {
         if (printSources) {
           saveCSV->saveNorm(1, uOld.E(), "NormE", acc);
           saveCSV->save(1, J_h, "J", acc);
+#ifdef THREEFIELDS
           saveCSV->save(0, rho_h, "rho", acc);
+#endif
         }
       }
     }
