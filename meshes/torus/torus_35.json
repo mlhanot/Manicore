@@ -3,11 +3,13 @@
   "Outer_dimension": 3,
   "Arguments": [
    null,
-   [
-    42
-   ]
+   null,
+   null,
+   null
   ],
   "Arguments_metric": [
+   null,
+   null,
    null,
    null
   ]
