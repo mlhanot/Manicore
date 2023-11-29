@@ -166,6 +166,8 @@ int main(int argc, char *argv[]) {
   if (vm.count("outdir")) {
     saveCSV = std::make_shared<SaveCSV>(&maxwell,vm["outdir"].as<std::string>().c_str());
   }
+  // Mesh data
+  std::cout<<"Mesh size: "<<maxwell.ddrcore().hmax()<<std::endl;
   // Factorize the system
   std::cout<<"Factorizing the system with "<<maxwell.dimensionSystem()<<" degrees of freedom"<<std::endl;
   maxwell.compute();

@@ -320,6 +320,17 @@ Eigen::MatrixXd DDR_Spaces<dimension>::computeL2Product(size_t k,size_t i_cell) 
   return rv;
 }
 
+template<size_t dimension>
+double DDR_Spaces<dimension>::hmax() const 
+{
+  double hmax = 0.;
+  for (size_t iT = 0; iT < _mesh->n_cells(dimension); ++iT) {
+    double tmp = _ddr->getTopScaling(iT);
+    hmax = (hmax > tmp)? hmax : tmp;
+  }
+  return hmax;
+}
+
 
 #include "preprocessor.hpp"
 // Instantiate the class for all dimensions

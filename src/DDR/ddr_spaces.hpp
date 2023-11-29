@@ -78,6 +78,10 @@ namespace Manicore {
         The contribution from a cell \f$f' \in \partial f \f$ of the boundary is \f$\int_f \langle \text{tr}_{f'} P^k_f - P^k_{f'} , \text{tr}_{f'} P^k_f - P^k_{f'} \rangle \text{vol}_{f'} \f$ multiplied by a scaling factor.
         */
       Eigen::MatrixXd computeL2Product(size_t k /*!<Form degree*/,size_t i_cell /*!< Cell index */) const;
+      /// Return the mesh size
+      /** \return \f$\max_{f\in \delta_{\text{dimension}}} h_f\f$
+        */
+      double hmax() const;
 
     private:
       struct DDR_Operators { // one for each form degree k
