@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     ("length,l", po::value<double>(&tmax)->default_value(2.*std::numbers::pi), "Simulation length")
     ("start", po::value<double>(&t0)->default_value(0.), "Starting time of the simulation")
     ("print,p", po::value<double>(&tprint)->default_value(1e-2), "Interval of simulation time between prints")
-    ("print-extra", po::bool_switch(), "Print all available fields")
+    ("print-extra", po::bool_switch(), "Print all available fields (include the norm of E, J, and rho)")
     ("logfile,f", po::value<std::string>(), "File to write logs")
     ("logfile-prefix", po::bool_switch(), "Use logfile as the prefix and append to automatic name")
     ("meshfile,m", po::value<size_t>(&meshNb)->default_value(2), "Index of the mesh in the sequence")
@@ -118,9 +118,9 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   // Set switches
-  use_threads = not vm.count("disable-threads");
-  printSources = vm.count("print-extra");
-  computeError = vm.count("exact");
+  use_threads = not vm["disable-threads"].as<bool>(); // .count always return 1 when used with bool_switch
+  printSources = vm["print-extra"].as<bool>();
+  computeError = vm["exact"].as<bool>();
   if (meshNb >= meshfiles.size()) {
     std::cout << "Meshfile number "<<meshNb<<" out of range. Please use a value less than "<<meshfiles.size()<<"\n";
     return 1;
@@ -253,7 +253,7 @@ int main(int argc, char *argv[]) {
         logErrFh <<t<<"\t"<<errE<<"\t"<<errdE<<"\t"<<errB<<std::endl;
       }
     }
-    if (t - tprev > tprint) {
+    if (t - tprev >= tprint) {
       tprev = t;
       acc++;
       std::cout<<"Time: "<<t<<"\n";
