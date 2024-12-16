@@ -96,6 +96,18 @@ namespace Manicore {
       double normd(Eigen::MatrixBase<Derived> const &E /*!< Discrete form */, 
                    size_t k /*!< Form degree */) const;
 
+      /// Compute the global discrete differential
+      /**
+        Compute the matrix of the global discrete differential. 
+        */
+      SystemMatrixType globalDiff(size_t k /*!< Form degree */) const;
+      
+      /// Compute the global mass matrix
+      /** 
+        Compute the global mass matrix of a single space
+        */
+      SystemMatrixType globalMass(size_t k /*!< Form degree */) const;
+
     private:
       void assembleLocalContribution(Eigen::Ref<const Eigen::MatrixXd> const & A, size_t iT, size_t kL, size_t kR, std::forward_list<Eigen::Triplet<double>> * triplets) const;
       void assembleLocalContributionH(Eigen::Ref<const Eigen::MatrixXd> const & A, size_t iT, size_t k, std::forward_list<Eigen::Triplet<double>> * triplets) const;
@@ -103,7 +115,6 @@ namespace Manicore {
       // Assemble the system and initialize the masses matrices
       void assembleSystem(); 
 
-    private:
       DDR_Spaces<2> _ddrcore;
       double _dt;
       bool _use_threads;
@@ -279,16 +290,12 @@ namespace Manicore {
     std::vector<Eigen::MatrixXd> ALoc01(nb_cell);
 #endif
     std::vector<Eigen::MatrixXd> ALoc12(nb_cell);
-#ifdef THREEFIELDS
-    _ALoc00.resize(nb_cell);
-#endif
+    _ALoc00.resize(nb_cell); // Only used to compute the preservation of Rho when using 2 fields
     _ALoc11.resize(nb_cell);
     _ALoc22.resize(nb_cell);
     std::function<void(size_t start, size_t end)> assemble_local = [&](size_t start, size_t end)->void {
       for (size_t iT = start; iT < end; iT++) {
-#ifdef THREEFIELDS
         Eigen::MatrixXd loc00 = _ddrcore.computeL2Product(0,iT);
-#endif
         Eigen::MatrixXd loc11 = _ddrcore.computeL2Product(1,iT);
         Eigen::MatrixXd loc22 = _ddrcore.computeL2Product(2,iT);
 #ifdef THREEFIELDS
@@ -301,9 +308,7 @@ namespace Manicore {
         ALoc01[iT] = loc01;
 #endif
         ALoc12[iT] = loc12;
-#ifdef THREEFIELDS
         _ALoc00[iT] = loc00;
-#endif
         _ALoc11[iT] = loc11;
         _ALoc22[iT] = loc22;
       }
@@ -338,18 +343,18 @@ namespace Manicore {
         Eigen::VectorXd loc;
 #ifdef THREEFIELDS
         // 0 forms
-        assert(rho.size() == dimensionG() && "Incorrect size of rho");
+        assert(static_cast<size_t>(rho.size()) == dimensionG() && "Incorrect size of rho");
         loc = -_ALoc00[iT]*_ddrcore.dofspace(0).restrict(2,iT,rho);
         assembleLocalContribution(loc,iT,0);
 #endif
         // 1 forms
-        assert(J.size() == dimensionE() && "Incorrect size of J");
-        assert(EOld.size() == dimensionE() && "Incorrect size of EOld");
+        assert(static_cast<size_t>(J.size()) == dimensionE() && "Incorrect size of J");
+        assert(static_cast<size_t>(EOld.size()) == dimensionE() && "Incorrect size of EOld");
         loc = _ALoc11[iT]*_ddrcore.dofspace(1).restrict(2,iT,_dt*J - EOld);
         loc -= 0.5*_dt*_ddrcore.compose_diff(1,2,iT).transpose()*_ALoc22[iT]*_ddrcore.dofspace(2).restrict(2,iT,BOld);
         assembleLocalContribution(loc,iT,1);
         // 2 forms
-        assert(BOld.size() == dimensionB() && "Incorrect size of BOld");
+        assert(static_cast<size_t>(BOld.size()) == dimensionB() && "Incorrect size of BOld");
         loc = _ALoc22[iT]*_ddrcore.dofspace(2).restrict(2,iT,BOld);
         loc -= 0.5*_dt*_ALoc22[iT]*_ddrcore.compose_diff(1,2,iT)*_ddrcore.dofspace(1).restrict(2,iT,EOld);
         assembleLocalContribution(loc,iT,2);
@@ -410,7 +415,7 @@ namespace Manicore {
   template<typename Derived>
   double MaxwellProblem::norm(Eigen::MatrixBase<Derived> const &E, size_t k) const
   {
-    assert(E.size() == _ddrcore.dofspace(k).dimensionMesh() && "Mismatched dimension, wrong form degree?");
+    assert(static_cast<size_t>(E.size()) == _ddrcore.dofspace(k).dimensionMesh() && "Mismatched dimension, wrong form degree?");
     const size_t nb_cell = _ddrcore.mesh()->n_cells(2);
     std::vector<double> accErr(nb_cell);
     std::function<void(size_t start, size_t end)> compute_local = [&](size_t start, size_t end)->void {
@@ -418,11 +423,9 @@ namespace Manicore {
         Eigen::VectorXd locE = _ddrcore.dofspace(k).restrict(2,iT,E); 
         Eigen::MatrixXd matL2;
         switch(k) {
-#ifdef THREEFIELDS
           case 0:
             matL2 = _ALoc00[iT];
             break;
-#endif
           case 1:
             matL2 = _ALoc11[iT];
             break;
@@ -447,7 +450,7 @@ namespace Manicore {
   double MaxwellProblem::normd(Eigen::MatrixBase<Derived> const &E,size_t k) const
   {
     if (k == 2) return 0.;
-    assert(E.size() == _ddrcore.dofspace(k).dimensionMesh() && "Mismatched dimension, wrong form degree?");
+    assert(static_cast<size_t>(E.size()) == _ddrcore.dofspace(k).dimensionMesh() && "Mismatched dimension, wrong form degree?");
     const size_t nb_cell = _ddrcore.mesh()->n_cells(2);
     std::vector<double> accErr(nb_cell);
     std::function<void(size_t start, size_t end)> compute_local = [&](size_t start, size_t end)->void {
@@ -455,11 +458,9 @@ namespace Manicore {
         Eigen::VectorXd locE = _ddrcore.compose_diff(k,2,iT)*_ddrcore.dofspace(k).restrict(2,iT,E);
         Eigen::MatrixXd matL2;
         switch(k) {
-#ifdef THREEFIELDS
           case 0:
             matL2 = _ALoc11[iT];
             break;
-#endif
           case 1:
             matL2 = _ALoc22[iT];
             break;
@@ -475,6 +476,71 @@ namespace Manicore {
       acc += err;
     }
     return std::sqrt(acc);
+  }
+
+  MaxwellProblem::SystemMatrixType MaxwellProblem::globalDiff(size_t k) const 
+  {
+    SystemMatrixType rv(_ddrcore.dofspace(k+1).dimensionMesh(),_ddrcore.dofspace(k).dimensionMesh());
+    std::forward_list<Eigen::Triplet<double>> triplets;
+    for (size_t iD = 0; iD < 3; ++iD) { 
+      const size_t nDofsL = _ddrcore.dofspace(k+1).numLocalDofs(iD);
+      if (nDofsL == 0) continue;
+      for (size_t iT = 0; iT < _ddrcore.mesh()->n_cells(iD); ++iT) { // Iterate over all dimension on the left to avoid double counting
+        Eigen::MatrixXd A = _ddrcore.compose_diff(k,iD,iT);
+        const size_t offsetL = _ddrcore.dofspace(k+1).globalOffset(iD,iT);
+        const size_t lOffsetL = _ddrcore.dofspace(k+1).localOffset(iD,iT);
+        for (size_t iDR = 0; iDR<=iD;++iDR) { // Iterate over the boundary on the right
+          const size_t nDofsR = _ddrcore.dofspace(k).numLocalDofs(iDR);
+          if (nDofsR == 0) continue;
+          std::vector<size_t> const & boundariesR = _ddrcore.mesh()->get_boundary(iDR,iD,iT);
+          for (size_t iFR = 0; iFR< boundariesR.size(); ++iFR) {
+            const size_t offsetR = _ddrcore.dofspace(k).globalOffset(iDR,boundariesR[iFR]);
+            const size_t lOffsetR = _ddrcore.dofspace(k).localOffset(iDR,iD,iFR,iT);
+            for (size_t iRow = 0; iRow < nDofsL; ++iRow) {
+              for (size_t iCol = 0; iCol < nDofsR; ++iCol) {
+                triplets.emplace_front(offsetL+iRow,offsetR+iCol,A(lOffsetL+iRow,lOffsetR+iCol));
+              }
+            }
+          }
+        }
+      }
+    }
+    rv.setFromTriplets(triplets.begin(),triplets.end());
+    return rv;
+  }
+
+  MaxwellProblem::SystemMatrixType MaxwellProblem::globalMass(size_t k) const 
+  {
+    SystemMatrixType rv(_ddrcore.dofspace(k).dimensionMesh(),_ddrcore.dofspace(k).dimensionMesh());
+    std::forward_list<Eigen::Triplet<double>> triplets;
+    std::vector<Eigen::MatrixXd> const & A = (k == 0)? _ALoc00 : ((k == 1)? _ALoc11 : _ALoc22);
+    for (size_t iT = 0; iT<_ddrcore.mesh()->n_cells(2); ++iT) {
+      for (size_t iDL = 0; iDL <= 2; ++iDL) { // Iterate dimensions on the left
+        const size_t nbLDofsL = _ddrcore.dofspace(k).numLocalDofs(iDL);
+        if (nbLDofsL == 0) continue;
+        std::vector<size_t> const & boundariesL = _ddrcore.mesh()->get_boundary(iDL,2,iT);
+        for (size_t iDR = 0; iDR <= 2; ++iDR) { // Iterate dimensions on the right
+          const size_t nbLDofsR = _ddrcore.dofspace(k).numLocalDofs(iDR);
+          if (nbLDofsR == 0) continue;
+          std::vector<size_t> const & boundariesR = _ddrcore.mesh()->get_boundary(iDR,2,iT);
+          for (size_t iFL = 0; iFL < boundariesL.size(); ++iFL) { // Iterate cells on the left
+            const size_t offsetL = _ddrcore.dofspace(k).globalOffset(iDL,boundariesL[iFL]);
+            const size_t lOffsetL = _ddrcore.dofspace(k).localOffset(iDL,2,iFL,iT);
+            for (size_t iFR = 0; iFR < boundariesR.size(); ++iFR) { // Iterate cells on the right
+              const size_t offsetR = _ddrcore.dofspace(k).globalOffset(iDR,boundariesR[iFR]);
+              const size_t lOffsetR = _ddrcore.dofspace(k).localOffset(iDR,2,iFR,iT);
+              for (size_t iRow = 0; iRow < nbLDofsL; ++iRow) { // Iterate local dofs 
+                for (size_t iCol = 0; iCol < nbLDofsR; ++iCol) { // Iterate local dofs
+                  triplets.emplace_front(offsetL + iRow,offsetR + iCol,A[iT](lOffsetL + iRow,lOffsetR + iCol));
+                } // iCol
+              } // iRow
+            } // iFR
+          } // iFL
+        } // iDR
+      } // iDL
+    } // iT
+    rv.setFromTriplets(triplets.begin(),triplets.end());
+    return rv;
   }
 
 }; // Namespace

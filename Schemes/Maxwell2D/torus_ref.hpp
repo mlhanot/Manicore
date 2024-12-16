@@ -10,6 +10,7 @@ struct Solution {
   virtual Eigen::Vector<double,1> rho (size_t map_id, const Eigen::Vector<double,2> &) = 0;
   virtual Eigen::Vector<double,2> J (size_t map_id, const Eigen::Vector<double,2> &) = 0;
   double _t = 0.;
+  bool _JZero = false;
   virtual ~Solution(){;};
 };
 

@@ -1,5 +1,5 @@
-project(Manicore)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+project(Manicore)
 
 # Dimension to compile for
 ADD_DEFINITIONS(-DMAX_DIMENSION=2)
@@ -9,8 +9,8 @@ OPTION(BUILD_TEST "Build the testing tree." ON)
 #                             Compiler setup
 #------------------------------------------------------------------------------#
 
-SET(CMAKE_CXX_COMPILER "g++")
-SET(CMAKE_CXX_COMPILER "clang++")
+#SET(CMAKE_CXX_COMPILER "g++")
+#SET(CMAKE_CXX_COMPILER "clang++")
 SET(CMAKE_CXX_STD "-std=c++20")
 SET(CMAKE_CXX_FLAGS "-g -Wall -Wpedantic -Werror -Wno-uninitialized")
 SET(CMAKE_CXX_FLAGS_DEBUGALL "${CMAKE_CXX_STD} ${CMAKE_CXX_FLAGS} -DEIGEN_INITIALIZE_MATRICES_BY_NAN -fsanitize=address,undefined -pthread" )

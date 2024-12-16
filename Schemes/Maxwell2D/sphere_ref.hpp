@@ -10,6 +10,8 @@ struct Solution {
   virtual Eigen::Vector<double,1> rho (size_t map_id, const Eigen::Vector<double,2> &) = 0;
   virtual Eigen::Vector<double,2> J (size_t map_id, const Eigen::Vector<double,2> &) = 0;
   double _t = 0.;
+  bool _JZero = false;
+  Solution(bool Jz) : _JZero(Jz) {;}
   virtual ~Solution(){;};
 };
 
@@ -77,6 +79,7 @@ struct Solution0 final : public Solution {
 };
 
 struct Solution1 final : public Solution {
+  Solution1 () : Solution(true) {;}
   Eigen::Vector<double,1> B (size_t map_id, const Eigen::Vector<double,2> &x) override 
   {
     const double X = x[0], Y = x[1];
@@ -108,6 +111,7 @@ struct Solution1 final : public Solution {
 };
 
 struct Solution2 final : public Solution {
+  Solution2 () : Solution(true) {;}
   Eigen::Vector<double,1> B (size_t map_id, const Eigen::Vector<double,2> &x) override 
   {
     const double X = x[0], Y = x[1];
@@ -143,6 +147,7 @@ struct Solution2 final : public Solution {
 };
 
 struct Solution3 final : public Solution {
+  Solution3 () : Solution(true) {;}
   Eigen::Vector<double,1> B (size_t map_id, const Eigen::Vector<double,2> &x) override 
   {
     return Eigen::Vector<double,1>{0.};
@@ -169,6 +174,40 @@ struct Solution3 final : public Solution {
       double val = 2.*(1. - (2.*X*st - (1. - r2)*ct)/(1. + r2));
       return Eigen::Vector<double,1>{(val > 3.8)? val : 0.};
     }
+  }
+  Eigen::Vector<double,2> J (size_t map_id, const Eigen::Vector<double,2> &x) override 
+  {
+    return Eigen::Vector<double,2>{0.,0.};
+  }
+};
+
+struct SolutionL1 final : public Solution {
+  SolutionL1 () : Solution(true) {;}
+  Eigen::Vector<double,1> B (size_t map_id, const Eigen::Vector<double,2> &x) override 
+  {
+    const double X2 = x[0]*x[0], Y2 = x[1]*x[1];
+    //const double tmp = ((map_id == 1)? -1 : 1)*std::cos(std::numbers::sqrt2*_t)*(1-X2-Y2)/(1+X2+Y2);
+    //const double tmp = std::cos(std::numbers::sqrt2*_t)*(1-X2-Y2)/(1+X2+Y2);
+    const double tmp = std::cos(std::numbers::sqrt2*_t)*(1-X2-Y2)/(1+X2+Y2)*4/std::pow(1+X2+Y2,2);
+    return Eigen::Vector<double,1>{tmp};
+  }
+  Eigen::Vector<double,2> E (size_t map_id, const Eigen::Vector<double,2> &x) override 
+  {
+    const double X2 = x[0]*x[0], Y2 = x[1]*x[1];
+    const double tmp = std::sin(std::numbers::sqrt2*_t)/std::numbers::sqrt2*4./(1+X2+Y2)/(1+X2+Y2);
+    return Eigen::Vector<double,2>{-x[1],x[0]}*tmp;
+  }
+  Eigen::Vector<double,1> dE (size_t map_id, const Eigen::Vector<double,2> &x) override 
+  {
+    const double X2 = x[0]*x[0], Y2 = x[1]*x[1];
+    //const double tmp = ((map_id == 1)? 1 : -1)*std::numbers::sqrt2*std::sin(std::numbers::sqrt2*_t)*(1-X2-Y2)/(1+X2+Y2);
+    //const double tmp = std::numbers::sqrt2*std::sin(std::numbers::sqrt2*_t)*(1-X2-Y2)/(1+X2+Y2);
+    const double tmp = std::numbers::sqrt2*std::sin(std::numbers::sqrt2*_t)*(1-X2-Y2)/(1+X2+Y2)*4/std::pow(1+X2+Y2,2);
+    return Eigen::Vector<double,1>{tmp};
+  }
+  Eigen::Vector<double,1> rho (size_t map_id, const Eigen::Vector<double,2> &x) override 
+  {
+    return Eigen::Vector<double,1>{0.};
   }
   Eigen::Vector<double,2> J (size_t map_id, const Eigen::Vector<double,2> &x) override 
   {
