@@ -1342,7 +1342,8 @@ HTML_EXTRA_STYLESHEET  = docs_sources/custom.css
 
 HTML_EXTRA_FILES       = docs_sources/mesh_format \
                          docs_sources/ref_exterior_algebra \
-                         docs_sources/DDR.svg
+                         docs_sources/DDR.svg \
+                         docs_sources/sphereB2.webp
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the style sheet and background images according to
