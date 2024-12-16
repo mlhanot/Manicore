@@ -28,3 +28,5 @@ output.SetPoints(pts)
 output.PointData.append(make_vector(data.GetArray("ValX"),data.GetArray("ValY"),data.GetArray("ValZ")), "Val")
 ```
 
+<IMG SRC="./sphereB2.webp" ALT="Example usage on paraview with the maxwell equation on the sphere" STYLE="width: 50%;">
+
