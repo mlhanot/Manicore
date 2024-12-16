@@ -15,7 +15,9 @@
   */
 
 /** \file maxwell.hpp
-  Implement a scheme for the 2 dimensional Maxwell equation
+  Implement a scheme for the 2 dimensional Maxwell equation.
+  The THREEFIELDS variant keeps rho in the system and introduce a third field G. 
+  This leads to a bigger system, but allows to compute J from rho if it is unknown.
   */
 
 namespace Manicore {

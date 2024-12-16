@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
     ("length,l", po::value<double>(&tmax)->default_value(2.*std::numbers::pi), "Simulation length")
     ("start", po::value<double>(&t0)->default_value(0.), "Starting time of the simulation")
     ("print,p", po::value<double>(&tprint)->default_value(1e-2), "Interval of simulation time between prints")
-    ("print-extra", po::bool_switch(), "Print all available fields")
+    ("print-extra", po::bool_switch(), "Print all available fields (include the norm of E, J, and rho)")
     ("logfile,f", po::value<std::string>(), "File to write logs")
     ("logfile-prefix", po::bool_switch(), "Use logfile as the prefix and append to automatic name")
     ("meshfile,m", po::value<size_t>(&meshNb)->default_value(2), "Index of the mesh in the sequence")
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   // Set switches
-  use_threads = not vm["disable-threads"].as<bool>();
+  use_threads = not vm["disable-threads"].as<bool>(); // .count always return 1 when used with bool_switch
   printSources = vm["print-extra"].as<bool>();
   computeError = vm["exact"].as<bool>();
   computeRhoPR = vm["WIP-compute-rho-pr"].as<bool>();
